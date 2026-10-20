@@ -26,9 +26,15 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-# Tried in order; the first one that succeeds for this API key/region wins.
-# ("flash-lite" first: fastest + free-tier, good enough for short advice.)
-MODEL_CANDIDATES = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+# Tried in order; prioritized Gemini Thinking AI models for deep reasoning.
+MODEL_CANDIDATES = [
+    "gemini-2.0-flash-thinking-exp-01-21",
+    "gemini-2.0-flash-thinking-exp",
+    "gemini-2.5-pro",
+    "gemini-2.0-pro-exp-02-05",
+    "gemini-2.0-flash",
+    "gemini-1.5-pro",
+]
 
 _client = None
 _working_model = None  # remembered once one candidate succeeds, to skip retrying the rest
@@ -161,26 +167,35 @@ def generate_recommendation(features_row: dict, prediction: dict) -> dict:
 
 
 def chat_reply(features_row: dict, prediction: dict, history: list[dict], message: str) -> str:
-    """Free-form Q&A about one student. `history` is a list of
+    """Free-form Q&A powered by Gemini Thinking AI with deep cognitive reasoning. `history` is a list of
     {"role": "user"|"model", "text": str} from earlier turns in this
     session (kept client-side by the dashboard, not persisted server-side).
     """
     system_context = (
-        "You are an academic mentor AI answering a student's or advisor's questions "
-        "inside a university 'digital student twin' dashboard. Be concise (2-5 "
-        "sentences unless asked for detail), warm, and specific to this student's data. "
-        "Never invent data not given below.\n\n"
+        "You are an academic mentor AI powered by Google's Gemini Thinking AI inside a university 'digital student twin' "
+        "dashboard. Think through the student's behavioural signals (sleep, mood, attendance, study hours) and their "
+        "impact on the machine learning GPA trajectory before formulating your response. "
+        "Be analytical yet encouraging, concise (2-5 sentences unless asked for deeper breakdowns), and grounded strictly in their data. "
+        "Never invent data not provided below.\n\n"
         f"Student data:\n{_student_context(features_row, prediction)}"
     )
     contents = [types.Content(role="user", parts=[types.Part(text=system_context)])]
     contents.append(types.Content(
         role="model",
-        parts=[types.Part(text="Understood — I'll answer based on this student's data.")],
+        parts=[types.Part(text="Understood — I'll analyze this student's digital twin signals deeply using Gemini Thinking AI reasoning.")],
     ))
     for turn in history[-10:]:  # cap context sent, keep it cheap
         role = "user" if turn.get("role") == "user" else "model"
         contents.append(types.Content(role=role, parts=[types.Part(text=turn.get("text", ""))]))
     contents.append(types.Content(role="user", parts=[types.Part(text=message)]))
 
-    response = _call_with_fallback(contents)
+    # Enable cognitive thinking budget for deeper reasoning
+    thinking_cfg = types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(thinking_budget=1024)
+    )
+    try:
+        response = _call_with_fallback(contents, config=thinking_cfg)
+    except Exception:
+        # Fallback to standard generation if the selected tier doesn't accept thinking_budget
+        response = _call_with_fallback(contents)
     return response.text
