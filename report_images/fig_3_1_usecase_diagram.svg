@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" rx="8"/>
+  <text x="450" y="32" font-family="'Times New Roman', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#0f172a">USE CASE DIAGRAM: MULTIMODAL STUDENT TWIN PLATFORM</text>
+  
+  <!-- Boundary Box -->
+  <rect x="220" y="55" width="460" height="440" fill="#f8fafc" stroke="#64748b" stroke-dasharray="4,4" stroke-width="1.5" rx="6"/>
+  <text x="450" y="78" font-family="'Times New Roman', serif" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">«System Boundary: ALT Digital Student Twin Engine»</text>
+
+  <!-- Actors -->
+  <!-- Student Actor -->
+  <circle cx="90" cy="160" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <line x1="90" y1="182" x2="90" y2="230" stroke="#0284c7" stroke-width="2"/>
+  <line x1="60" y1="200" x2="120" y2="200" stroke="#0284c7" stroke-width="2"/>
+  <line x1="90" y1="230" x2="70" y2="280" stroke="#0284c7" stroke-width="2"/>
+  <line x1="90" y1="230" x2="110" y2="280" stroke="#0284c7" stroke-width="2"/>
+  <text x="90" y="305" font-family="'Times New Roman', serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#0369a1">Student User</text>
+  <text x="90" y="322" font-family="'Times New Roman', serif" font-size="11" text-anchor="middle" fill="#64748b">(Primary Actor)</text>
+
+  <!-- Educator/Admin Actor -->
+  <circle cx="810" cy="160" r="22" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <line x1="810" y1="182" x2="810" y2="230" stroke="#d97706" stroke-width="2"/>
+  <line x1="780" y1="200" x2="840" y2="200" stroke="#d97706" stroke-width="2"/>
+  <line x1="810" y1="230" x2="790" y2="280" stroke="#d97706" stroke-width="2"/>
+  <line x1="810" y1="230" x2="830" y2="280" stroke="#d97706" stroke-width="2"/>
+  <text x="810" y="305" font-family="'Times New Roman', serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#b45309">Faculty / Mentor</text>
+  <text x="810" y="322" font-family="'Times New Roman', serif" font-size="11" text-anchor="middle" fill="#64748b">(Secondary Actor)</text>
+
+  <!-- Use Cases -->
+  <!-- UC1 -->
+  <ellipse cx="450" cy="115" rx="140" ry="24" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="450" y="119" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e293b">UC-1: Authenticate via RBAC Session</text>
+
+  <!-- UC2 -->
+  <ellipse cx="450" cy="175" rx="140" ry="24" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="450" y="179" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e293b">UC-2: Submit Daily Biometric/Sleep Check-in</text>
+
+  <!-- UC3 -->
+  <ellipse cx="450" cy="235" rx="140" ry="24" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="450" y="239" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e293b">UC-3: Run What-If Counterfactual Simulation</text>
+
+  <!-- UC4 -->
+  <ellipse cx="450" cy="295" rx="140" ry="24" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="450" y="299" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e293b">UC-4: Converse with Empathetic AI Copilot</text>
+
+  <!-- UC5 -->
+  <ellipse cx="450" cy="355" rx="140" ry="24" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="450" y="359" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e293b">UC-5: Stream 432 Hz Neuro-Acoustic Audio</text>
+
+  <!-- UC6 -->
+  <ellipse cx="450" cy="415" rx="140" ry="24" fill="#ffffff" stroke="#d97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="450" y="419" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e293b">UC-6: Inspect Cohort Risk Distribution</text>
+
+  <!-- UC7 -->
+  <ellipse cx="450" cy="470" rx="140" ry="22" fill="#ffffff" stroke="#d97706" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="450" y="474" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle" fill="#1e293b">UC-7: Audit Random Forest Feature Weights</text>
+
+  <!-- Connections Student -->
+  <line x1="120" y1="180" x2="315" y2="120" stroke="#0284c7" stroke-width="1.2"/>
+  <line x1="120" y1="200" x2="310" y2="175" stroke="#0284c7" stroke-width="1.2"/>
+  <line x1="120" y1="220" x2="310" y2="235" stroke="#0284c7" stroke-width="1.2"/>
+  <line x1="120" y1="230" x2="315" y2="295" stroke="#0284c7" stroke-width="1.2"/>
+  <line x1="120" y1="240" x2="320" y2="355" stroke="#0284c7" stroke-width="1.2"/>
+
+  <!-- Connections Mentor -->
+  <line x1="780" y1="180" x2="590" y2="120" stroke="#d97706" stroke-width="1.2"/>
+  <line x1="780" y1="210" x2="590" y2="235" stroke="#d97706" stroke-width="1.2"/>
+  <line x1="780" y1="230" x2="590" y2="415" stroke="#d97706" stroke-width="1.2"/>
+  <line x1="780" y1="250" x2="590" y2="470" stroke="#d97706" stroke-width="1.2"/>
+</svg>

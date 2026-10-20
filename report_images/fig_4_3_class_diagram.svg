@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" rx="8"/>
+  <text x="450" y="30" font-family="'Times New Roman', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#0f172a">UML CLASS DIAGRAM: OBJECT MODEL OF DIGITAL STUDENT TWIN</text>
+
+  <!-- Class 1: StudentTwin -->
+  <rect x="40" y="60" width="250" height="200" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
+  <rect x="40" y="60" width="250" height="30" fill="#e2e8f0" rx="4"/>
+  <text x="165" y="80" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle">StudentTwin</text>
+  <text x="50" y="105" font-family="'Courier New', monospace" font-size="10">+ student_id: str</text>
+  <text x="50" y="120" font-family="'Courier New', monospace" font-size="10">+ name: str</text>
+  <text x="50" y="135" font-family="'Courier New', monospace" font-size="10">+ study_hours_per_week: float</text>
+  <text x="50" y="150" font-family="'Courier New', monospace" font-size="10">+ sleep_hours: float</text>
+  <text x="50" y="165" font-family="'Courier New', monospace" font-size="10">+ stress_level: int [1-10]</text>
+  <text x="50" y="180" font-family="'Courier New', monospace" font-size="10">+ projected_marks: float</text>
+  <line x1="40" y1="190" x2="290" y2="190" stroke="#cbd5e1"/>
+  <text x="50" y="210" font-family="'Courier New', monospace" font-size="10">+ get_risk_category(): RiskLevel</text>
+  <text x="50" y="225" font-family="'Courier New', monospace" font-size="10">+ update_checkin(payload: dict)</text>
+  <text x="50" y="240" font-family="'Courier New', monospace" font-size="10">+ to_vector(): ndarray</text>
+
+  <!-- Class 2: TrajectoryPredictor -->
+  <rect x="340" y="60" width="260" height="180" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
+  <rect x="340" y="60" width="260" height="30" fill="#e2e8f0" rx="4"/>
+  <text x="470" y="80" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle">TrajectoryPredictor</text>
+  <text x="350" y="105" font-family="'Courier New', monospace" font-size="10">- model: RandomForestRegressor</text>
+  <text x="350" y="120" font-family="'Courier New', monospace" font-size="10">- feature_names: List[str]</text>
+  <text x="350" y="135" font-family="'Courier New', monospace" font-size="10">- feature_importances: dict</text>
+  <line x1="340" y1="145" x2="600" y2="145" stroke="#cbd5e1"/>
+  <text x="350" y="165" font-family="'Courier New', monospace" font-size="10">+ fit(X_train, y_train): void</text>
+  <text x="350" y="180" font-family="'Courier New', monospace" font-size="10">+ predict(X_test): ndarray</text>
+  <text x="350" y="195" font-family="'Courier New', monospace" font-size="10">+ simulate_what_if(delta): float</text>
+  <text x="350" y="210" font-family="'Courier New', monospace" font-size="10">+ explain(student_id): dict</text>
+
+  <!-- Class 3: CognitiveCopilotEngine -->
+  <rect x="640" y="60" width="240" height="180" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
+  <rect x="640" y="60" width="240" height="30" fill="#e2e8f0" rx="4"/>
+  <text x="760" y="80" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle">CognitiveCopilotEngine</text>
+  <text x="650" y="105" font-family="'Courier New', monospace" font-size="10">- gemini_api_key: str</text>
+  <text x="650" y="120" font-family="'Courier New', monospace" font-size="10">- thinking_budget: int = 2048</text>
+  <text x="650" y="135" font-family="'Courier New', monospace" font-size="10">- system_instruction: str</text>
+  <line x1="640" y1="145" x2="880" y2="145" stroke="#cbd5e1"/>
+  <text x="650" y="165" font-family="'Courier New', monospace" font-size="10">+ chat(prompt: str): str</text>
+  <text x="650" y="180" font-family="'Courier New', monospace" font-size="10">+ format_student_context(): str</text>
+  <text x="650" y="195" font-family="'Courier New', monospace" font-size="10">+ fallback_response(p): str</text>
+
+  <!-- Class 4: AudioTherapySubsystem -->
+  <rect x="180" y="300" width="260" height="150" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
+  <rect x="180" y="300" width="260" height="30" fill="#e2e8f0" rx="4"/>
+  <text x="310" y="320" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle">AudioTherapySubsystem</text>
+  <text x="190" y="345" font-family="'Courier New', monospace" font-size="10">- audio_context: AudioContext</text>
+  <text x="190" y="360" font-family="'Courier New', monospace" font-size="10">- base_frequency: float = 432.0</text>
+  <text x="190" y="375" font-family="'Courier New', monospace" font-size="10">- is_playing: bool</text>
+  <line x1="180" y1="385" x2="440" y2="385" stroke="#cbd5e1"/>
+  <text x="190" y="405" font-family="'Courier New', monospace" font-size="10">+ play_soothing_chord(): void</text>
+  <text x="190" y="420" font-family="'Courier New', monospace" font-size="10">+ toggle(): bool</text>
+  <text x="190" y="435" font-family="'Courier New', monospace" font-size="10">+ set_gain(volume: float): void</text>
+
+  <!-- Class 5: CohortManager -->
+  <rect x="500" y="300" width="260" height="150" fill="#f8fafc" stroke="#334155" stroke-width="1.5" rx="4"/>
+  <rect x="500" y="300" width="260" height="30" fill="#e2e8f0" rx="4"/>
+  <text x="630" y="320" font-family="'Times New Roman', serif" font-size="12" font-weight="bold" text-anchor="middle">CohortManager</text>
+  <text x="510" y="345" font-family="'Courier New', monospace" font-size="10">- students: Dict[str, StudentTwin]</text>
+  <text x="510" y="360" font-family="'Courier New', monospace" font-size="10">- total_cohort_size: int = 600</text>
+  <line x1="500" y1="375" x2="760" y2="375" stroke="#cbd5e1"/>
+  <text x="510" y="395" font-family="'Courier New', monospace" font-size="10">+ get_summary(): CohortMetrics</text>
+  <text x="510" y="410" font-family="'Courier New', monospace" font-size="10">+ filter_at_risk(): List[Student]</text>
+  <text x="510" y="425" font-family="'Courier New', monospace" font-size="10">+ export_csv_report(): bytes</text>
+
+  <!-- Associations -->
+  <line x1="290" y1="130" x2="340" y2="130" stroke="#334155" stroke-width="1.5"/>
+  <text x="315" y="122" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">1..*</text>
+
+  <line x1="600" y1="130" x2="640" y2="130" stroke="#334155" stroke-width="1.5"/>
+  <line x1="200" y1="260" x2="240" y2="300" stroke="#334155" stroke-width="1.5"/>
+  <line x1="290" y1="210" x2="500" y2="340" stroke="#334155" stroke-width="1.5"/>
+</svg>

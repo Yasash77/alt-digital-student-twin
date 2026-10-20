@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" rx="8"/>
+  <text x="460" y="30" font-family="'Times New Roman', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#0f172a">SEQUENCE DIAGRAM: WHAT-IF SIMULATION &amp; COPILOT INTERVENTION</text>
+
+  <!-- Participants -->
+  <rect x="40" y="55" width="120" height="35" fill="#e0f2fe" stroke="#0284c7" rx="4"/>
+  <text x="100" y="77" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle">:Student UI</text>
+
+  <rect x="240" y="55" width="130" height="35" fill="#f3e8ff" stroke="#9333ea" rx="4"/>
+  <text x="305" y="77" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle">:FastAPI Handler</text>
+
+  <rect x="450" y="55" width="140" height="35" fill="#dcfce7" stroke="#16a34a" rx="4"/>
+  <text x="520" y="77" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle">:SimulationEngine</text>
+
+  <rect x="670" y="55" width="150" height="35" fill="#fef3c7" stroke="#d97706" rx="4"/>
+  <text x="745" y="77" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle">:GeminiThinkingAI</text>
+
+  <!-- Lifelines -->
+  <line x1="100" y1="90" x2="100" y2="440" stroke="#94a3b8" stroke-dasharray="4,4"/>
+  <line x1="305" y1="90" x2="305" y2="440" stroke="#94a3b8" stroke-dasharray="4,4"/>
+  <line x1="520" y1="90" x2="520" y2="440" stroke="#94a3b8" stroke-dasharray="4,4"/>
+  <line x1="745" y1="90" x2="745" y2="440" stroke="#94a3b8" stroke-dasharray="4,4"/>
+
+  <!-- Messages -->
+  <defs>
+    <marker id="marr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#334155"/>
+    </marker>
+  </defs>
+
+  <line x1="100" y1="120" x2="305" y2="120" stroke="#334155" stroke-width="1.5" marker-end="url(#marr)"/>
+  <text x="202" y="113" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">1: Adjust Study Hours (+4h) &amp; Sleep (8h)</text>
+
+  <line x1="305" y1="150" x2="520" y2="150" stroke="#334155" stroke-width="1.5" marker-end="url(#marr)"/>
+  <text x="412" y="143" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">2: evaluate_delta(student_id, deltas)</text>
+
+  <line x1="520" y1="190" x2="305" y2="190" stroke="#334155" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#marr)"/>
+  <text x="412" y="183" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">3: return Projected Marks (+11.8%) &amp; Risk Drop</text>
+
+  <line x1="305" y1="220" x2="100" y2="220" stroke="#334155" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#marr)"/>
+  <text x="202" y="213" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">4: Render Dynamic Trajectory Gauge &amp; Delta Card</text>
+
+  <line x1="100" y1="260" x2="305" y2="260" stroke="#334155" stroke-width="1.5" marker-end="url(#marr)"/>
+  <text x="202" y="253" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">5: POST /api/chat ("How do I reach this goal?")</text>
+
+  <line x1="305" y1="290" x2="745" y2="290" stroke="#334155" stroke-width="1.5" marker-end="url(#marr)"/>
+  <text x="525" y="283" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">6: generate_content(context + delta_metrics, thinking_budget=2048)</text>
+
+  <line x1="745" y1="340" x2="305" y2="340" stroke="#334155" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#marr)"/>
+  <text x="525" y="333" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">7: stream_response(Empathetic Action Plan, Tone: Nurturing)</text>
+
+  <line x1="305" y1="370" x2="100" y2="370" stroke="#334155" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#marr)"/>
+  <text x="202" y="363" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle">8: Render conversational response (&lt;48ms)</text>
+
+  <line x1="100" y1="400" x2="100" y2="425" stroke="#0284c7" stroke-width="1.5"/>
+  <line x1="100" y1="425" x2="150" y2="425" stroke="#0284c7" stroke-width="1.5"/>
+  <line x1="150" y1="425" x2="150" y2="410" stroke="#0284c7" stroke-width="1.5"/>
+  <line x1="150" y1="410" x2="102" y2="410" stroke="#0284c7" stroke-width="1.5" marker-end="url(#marr)"/>
+  <text x="160" y="420" font-family="'Times New Roman', serif" font-size="9" fill="#0369a1">9: AudioNode.start() [432Hz ambient soundscape]</text>
+</svg>

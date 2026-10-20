@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 460" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" rx="8"/>
+  <text x="460" y="32" font-family="'Times New Roman', serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#0f172a">DATA FLOW DIAGRAM (DFD LEVEL 1): PREDICTIVE DIGITAL TWIN</text>
+
+  <!-- External Entities -->
+  <rect x="30" y="90" width="130" height="70" fill="#f1f5f9" stroke="#334155" stroke-width="2" rx="4"/>
+  <text x="95" y="125" font-family="'Times New Roman', serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#0f172a">Student Telemetry</text>
+  <text x="95" y="142" font-family="'Times New Roman', serif" font-size="11" text-anchor="middle" fill="#64748b">(External Source)</text>
+
+  <rect x="30" y="270" width="130" height="70" fill="#f1f5f9" stroke="#334155" stroke-width="2" rx="4"/>
+  <text x="95" y="305" font-family="'Times New Roman', serif" font-size="13" font-weight="bold" text-anchor="middle" fill="#0f172a">Faculty / Mentor</text>
+  <text x="95" y="322" font-family="'Times New Roman', serif" font-size="11" text-anchor="middle" fill="#64748b">(External Sink)</text>
+
+  <!-- Processes -->
+  <!-- P1 -->
+  <circle cx="280" cy="125" r="45" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="280" y="122" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#0369a1">1.0 Ingestion &amp;</text>
+  <text x="280" y="137" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#0369a1">Validation</text>
+
+  <!-- P2 -->
+  <circle cx="500" cy="125" r="45" fill="#e0e7ff" stroke="#4338ca" stroke-width="2"/>
+  <text x="500" y="122" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#3730a3">2.0 Random Forest</text>
+  <text x="500" y="137" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#3730a3">Inference Engine</text>
+
+  <!-- P3 -->
+  <circle cx="730" cy="125" r="45" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="730" y="122" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#b45309">3.0 Gemini Cognitive</text>
+  <text x="730" y="137" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#b45309">Thinking Copilot</text>
+
+  <!-- P4 -->
+  <circle cx="500" cy="305" r="45" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="500" y="302" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#15803d">4.0 What-If</text>
+  <text x="500" y="317" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#15803d">Simulation Engine</text>
+
+  <!-- Data Stores -->
+  <g>
+    <line x1="330" y1="210" x2="440" y2="210" stroke="#475569" stroke-width="2"/>
+    <line x1="330" y1="240" x2="440" y2="240" stroke="#475569" stroke-width="2"/>
+    <text x="385" y="228" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#1e293b">D1: Student DB (600)</text>
+  </g>
+
+  <g>
+    <line x1="560" y1="210" x2="670" y2="210" stroke="#475569" stroke-width="2"/>
+    <line x1="560" y1="240" x2="670" y2="240" stroke="#475569" stroke-width="2"/>
+    <text x="615" y="228" font-family="'Times New Roman', serif" font-size="11" font-weight="bold" text-anchor="middle" fill="#1e293b">D2: Audit Logs &amp; Chat</text>
+  </g>
+
+  <!-- Connectors -->
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <line x1="160" y1="125" x2="230" y2="125" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="195" y="117" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle" fill="#475569">Check-ins</text>
+
+  <line x1="325" y1="125" x2="450" y2="125" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="388" y="117" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle" fill="#475569">Clean Vector</text>
+
+  <line x1="545" y1="125" x2="680" y2="125" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="612" y="117" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle" fill="#475569">Risk + Predicted GPA</text>
+
+  <line x1="500" y1="170" x2="500" y2="255" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="510" y="215" font-family="'Times New Roman', serif" font-size="10" fill="#475569">Model Weights</text>
+
+  <line x1="455" y1="305" x2="165" y2="305" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="300" y="297" font-family="'Times New Roman', serif" font-size="10" text-anchor="middle" fill="#475569">Real-time What-If Scenarios</text>
+
+  <line x1="730" y1="170" x2="660" y2="210" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="280" y1="170" x2="340" y2="210" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+</svg>
