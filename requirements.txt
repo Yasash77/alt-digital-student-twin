@@ -1,0 +1,14 @@
+fastapi>=0.110
+uvicorn>=0.29
+# Pinned to the version the committed models/*.pkl files were trained with,
+# so loading them never hits sklearn's InconsistentVersionWarning.
+scikit-learn==1.8.0
+pandas>=2.2
+numpy>=1.26
+joblib>=1.3
+google-genai>=1.0
+python-dotenv>=1.0
+bcrypt>=4.0
+pyjwt>=2.8
+sqlalchemy>=2.0
+psycopg2-binary>=2.9

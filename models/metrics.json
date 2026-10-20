@@ -1,0 +1,30 @@
+{
+  "gpa_model": {
+    "r2": 0.743,
+    "mae": 0.441
+  },
+  "risk_model": {
+    "accuracy": 0.8,
+    "f1": 0.52,
+    "roc_auc": 0.783,
+    "decision_threshold": 0.45
+  },
+  "feature_importance_gpa": {
+    "avg_marks": 0.881,
+    "daily_checkin_mood": 0.035,
+    "attendance_pct": 0.031,
+    "sleep_hours": 0.024,
+    "study_hours_per_day": 0.015,
+    "assignment_completion_pct": 0.015
+  },
+  "feature_importance_risk": {
+    "avg_marks": 0.339,
+    "study_hours_per_day": 0.184,
+    "attendance_pct": 0.168,
+    "daily_checkin_mood": 0.14,
+    "assignment_completion_pct": 0.102,
+    "sleep_hours": 0.067
+  },
+  "n_train": 480,
+  "n_test": 120
+}

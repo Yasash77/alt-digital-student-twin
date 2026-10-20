@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ALT — Digital Student Twin</title>
+<script src="chart.umd.js"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #ffffff;
+    --page-plane:     #f3f3f1;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;   /* blue */
+    --series-2:       #eb6834;   /* orange */
+    --status-good:     #0ca30c;
+    --status-critical: #d03b3b;
+    --status-warning:  #fab219;
+    --sidebar-bg:     #14161a;
+    --sidebar-fg:     #d8d9dc;
+    --sidebar-muted:  #83868d;
+    --sidebar-active: #1f232b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #201f1e;
+      --page-plane:     #101110;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --status-good:     #0ca30c;
+      --status-critical: #e66767;
+      --status-warning:  #fab219;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --surface-2:      #201f1e;
+    --page-plane:     #101110;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --status-good:     #0ca30c;
+    --status-critical: #e66767;
+    --status-warning:  #fab219;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+
+  /* ---------- Login screen ---------- */
+  .login-screen { display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; }
+  .login-screen.hidden { display: none; }
+  .login-card { width: 400px; max-width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 30px 28px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+  .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+  .login-card h1 { font-size: 19px; margin: 0 0 4px; }
+  .login-sub { font-size: 13px; color: var(--text-secondary); margin: 0 0 20px; line-height: 1.5; }
+  .login-card label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; }
+  .login-card input {
+    display: block; width: 100%; margin-top: 5px; font: inherit; font-size: 13.5px; padding: 9px 10px;
+    border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary);
+  }
+  .login-card button[type="submit"] {
+    width: 100%; font: inherit; font-size: 13.5px; font-weight: 600; padding: 10px; border-radius: 8px;
+    border: none; background: var(--series-1); color: #fff; cursor: pointer; margin-top: 6px;
+  }
+  .login-card button[type="submit"]:disabled { opacity: 0.6; cursor: not-allowed; }
+  .login-error {
+    font-size: 12.5px; color: var(--status-critical); background: color-mix(in srgb, var(--status-critical) 12%, transparent);
+    border-radius: 8px; padding: 8px 10px; margin-bottom: 14px;
+  }
+  .login-demo { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .login-demo p { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 8px; }
+  .login-demo ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.85; }
+  .login-demo code { background: var(--page-plane); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+  .login-demo li button { font: inherit; font-size: 11px; color: var(--series-1); background: none; border: none; cursor: pointer; padding: 0 0 0 6px; text-decoration: underline; }
+
+  /* ---------- App shell ---------- */
+  .app-shell { display: none; width: 100%; }
+  .app-shell.active { display: flex; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: 232px; flex-shrink: 0; background: var(--sidebar-bg); color: var(--sidebar-fg);
+    display: flex; flex-direction: column; padding: 20px 12px; position: sticky; top: 0; height: 100vh;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 6px 10px 22px; }
+  .brand-mark {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--series-1);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff;
+    flex-shrink: 0;
+  }
+  .brand-text { line-height: 1.25; }
+  .brand-text strong { display: block; font-size: 14px; color: #fff; }
+  .brand-text span { display: block; font-size: 11px; color: var(--sidebar-muted); }
+  .login-brand .brand-text strong { color: var(--text-primary); }
+  .login-brand .brand-text span { color: var(--text-muted); }
+
+  .nav-group { margin-top: 6px; }
+  .nav-link {
+    display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 8px;
+    color: var(--sidebar-fg); text-decoration: none; font-size: 13.5px; font-weight: 500;
+    cursor: pointer; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.06); }
+  .nav-link.active { background: var(--sidebar-active); color: #fff; }
+  .nav-link.active .nav-icon { color: var(--series-1); }
+  .nav-icon { width: 17px; height: 17px; flex-shrink: 0; }
+  .nav-icon svg { width: 100%; height: 100%; }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 10px 12px; font-size: 11px; color: var(--sidebar-muted);
+    border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; line-height: 1.6;
+  }
+  .user-chip { display: flex; align-items: center; gap: 9px; padding: 2px 0 14px; }
+  .user-chip-avatar {
+    width: 28px; height: 28px; border-radius: 50%; background: var(--series-1); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .user-chip-text { line-height: 1.3; flex: 1; min-width: 0; }
+  .user-chip-text strong { display: block; font-size: 12.5px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-chip-text span { display: block; font-size: 10.5px; color: var(--sidebar-muted); }
+  .logout-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.14); color: var(--sidebar-muted); cursor: pointer;
+    font-size: 10.5px; font-weight: 600; padding: 5px 8px; flex-shrink: 0; border-radius: 6px;
+  }
+  .logout-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
+
+  .sidebar-status { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .sidebar-status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--status-good); flex-shrink: 0; }
+  .sidebar-status.err .dot { background: var(--status-critical); }
+
+  /* ---------- Main ---------- */
+  .main { flex: 1; min-width: 0; padding: 28px 32px 60px; max-width: 1280px; }
+  .page-header { margin-bottom: 22px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .page-header h1 { font-size: 21px; margin: 0 0 4px; }
+  .page-header p { margin: 0; color: var(--text-secondary); font-size: 13.5px; max-width: 640px; }
+  .page-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .self-badge { font-size: 12.5px; padding: 8px 13px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-secondary); }
+  .self-badge strong { color: var(--text-primary); }
+
+  select, input[type="text"] {
+    font: inherit; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--text-primary);
+  }
+  select { min-width: 150px; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 1000px) { .grid, .grid.cols-3 { grid-template-columns: repeat(2, 1fr); } }
+
+  .card {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+  }
+  .card + .card { margin-top: 14px; }
+  .panel-row { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 1000px) { .panel-row { grid-template-columns: 1fr; } }
+
+  .stat-label { font-size: 11.5px; color: var(--text-muted); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .stat-value { font-size: 28px; font-weight: 600; margin: 0; font-variant-numeric: tabular-nums; }
+  .stat-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+  }
+  .badge.good { color: var(--status-good); background: color-mix(in srgb, var(--status-good) 14%, transparent); }
+  .badge.critical { color: var(--status-critical); background: color-mix(in srgb, var(--status-critical) 14%, transparent); }
+  .badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+  .panel-title { font-size: 14px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; justify-content: space-between; }
+  .chart-box { position: relative; height: 260px; }
+  .chart-box.tall { height: 320px; }
+
+  .source-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+  }
+  .source-pill.gemini { color: var(--series-1); background: color-mix(in srgb, var(--series-1) 14%, transparent); }
+  .source-pill.rule_based { color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 14%, transparent); }
+
+  .reco-headline { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
+  .reco-tips { margin: 0; padding-left: 18px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; }
+  .reco-tips li { margin-bottom: 6px; }
+  .reco-note { font-size: 11.5px; color: var(--text-muted); margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+
+  .chat-wrap { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 14px; }
+  .chat-wrap.no-border { border: none; padding-top: 0; margin-top: 0; }
+  .chat-log { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; font-size: 13px; }
+  .chat-log.tall { max-height: 460px; }
+  .chat-msg { padding: 8px 12px; border-radius: 10px; max-width: 88%; line-height: 1.5; white-space: pre-wrap; }
+  .chat-msg.user { align-self: flex-end; background: var(--series-1); color: #fff; }
+  .chat-msg.model { align-self: flex-start; background: var(--page-plane); border: 1px solid var(--border); color: var(--text-primary); }
+  .chat-msg.pending { align-self: flex-start; color: var(--text-muted); font-style: italic; background: none; border: none; padding-left: 0; }
+  .chat-empty { color: var(--text-muted); font-size: 13px; padding: 30px 0; text-align: center; }
+  .chat-form { display: flex; gap: 8px; }
+  .chat-form input { flex: 1; font: inherit; font-size: 13px; }
+  .chat-form button {
+    font: inherit; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px;
+    border: none; background: var(--series-1); color: #fff; cursor: pointer;
+  }
+  .chat-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .chat-disabled-note {
+    font-size: 12px; color: var(--text-muted); background: var(--page-plane);
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px;
+  }
+  .chat-disabled-note code { font-size: 11.5px; }
+  .suggestion-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chip {
+    font-size: 12px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--page-plane); color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;
+  }
+  .chip:hover { color: var(--text-primary); border-color: var(--series-1); transform: translateY(-1px); }
+
+  .chat-sim-card {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; margin-top: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .chat-sim-title { font-weight: 600; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .chat-sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .chat-sim-stat {
+    background: var(--page-plane); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 3px; font-size: 12px;
+  }
+  .chat-sim-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+  .diff-badge { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-block; width: fit-content; }
+  .diff-badge.positive { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+  .diff-badge.negative { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+  .btn-chat-action {
+    font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px;
+    background: var(--series-1); color: #fff; border: none; cursor: pointer; transition: filter 0.2s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-chat-action:hover { filter: brightness(1.15); }
+  .draft-box {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-top: 8px;
+  }
+  .draft-box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
+  .btn-copy {
+    font: inherit; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px;
+    background: var(--page-plane); color: var(--text-primary); border: 1px solid var(--border); cursor: pointer;
+  }
+  .btn-copy:hover { border-color: var(--series-1); }
+  .typing-cursor { display: inline-block; animation: blink 0.8s infinite; color: var(--series-1); font-weight: bold; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  .chat-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0; background: var(--surface-2); border-radius: 6px; overflow: hidden; }
+  .chat-table th, .chat-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  .chat-table th { background: var(--page-plane); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--gridline); font-variant-numeric: tabular-nums; }
+  th { color: var(--text-muted); font-weight: 600; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.02em; position: sticky; top: 0; background: var(--surface-2); }
+  tbody tr:hover { background: color-mix(in srgb, var(--series-1) 6%, transparent); cursor: pointer; }
+  .table-scroll { max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+
+  .watchlist-item {
+    display: flex; justify-content: space-between; align-items: center; padding: 9px 0;
+    border-bottom: 1px solid var(--gridline); font-size: 13px; cursor: pointer;
+  }
+  .watchlist-item:last-child { border-bottom: none; }
+  .watchlist-item:hover .wl-id { color: var(--series-1); }
+  .wl-id { font-weight: 600; }
+  .wl-meta { color: var(--text-muted); font-size: 12px; }
+
+  .about-section { margin-bottom: 22px; }
+  .about-section h3 { font-size: 14px; margin: 0 0 8px; }
+  .about-section p { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; margin: 0 0 8px; }
+  .about-section ul { margin: 6px 0; padding-left: 20px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; }
+  .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .status-pill {
+    font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .status-pill.done { color: var(--status-good); background: color-mix(in srgb, var(--status-good) 14%, transparent); }
+  .status-pill.progress { color: var(--status-warning); background: color-mix(in srgb, var(--status-warning) 20%, transparent); }
+  .status-pill.todo { color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 14%, transparent); }
+
+  .metrics-footer { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .metrics-footer { grid-template-columns: repeat(2, 1fr); } }
+  .metrics-footer .card { padding: 12px 14px; }
+  .metrics-footer .stat-value { font-size: 19px; }
+
+  .api-status-inline { font-size: 12px; margin-top: 3px; }
+  .api-status-inline.ok { color: var(--status-good); }
+  .api-status-inline.err { color: var(--status-critical); }
+
+  /* ---------- Signal bars ---------- */
+  .signal-row { margin-bottom: 13px; }
+  .signal-row:last-child { margin-bottom: 0; }
+  .signal-label { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 5px; }
+  .signal-value { font-variant-numeric: tabular-nums; color: var(--text-primary); font-weight: 600; }
+  .signal-track { height: 7px; border-radius: 999px; background: var(--gridline); overflow: hidden; }
+  .signal-fill { height: 100%; border-radius: 999px; }
+  .signal-fill.good { background: var(--status-good); }
+  .signal-fill.warn { background: var(--status-warning); }
+
+  /* ---------- What-if simulator ---------- */
+  .whatif-row { margin-bottom: 15px; }
+  .whatif-row:last-child { margin-bottom: 0; }
+  .whatif-label { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  .whatif-value { font-variant-numeric: tabular-nums; color: var(--text-primary); font-weight: 600; }
+  .whatif-slider { width: 100%; accent-color: var(--series-1); }
+  .whatif-result { display: flex; align-items: baseline; gap: 16px; margin: 16px 0 6px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .whatif-result .stat-value { font-size: 24px; }
+  .whatif-delta { font-size: 12.5px; font-weight: 600; min-height: 16px; }
+  .whatif-delta.good { color: var(--status-good); }
+  .whatif-delta.warn { color: var(--status-critical); }
+  .whatif-reset {
+    font: inherit; font-size: 12px; padding: 7px 13px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--page-plane); color: var(--text-secondary); cursor: pointer; margin-top: 10px;
+  }
+  .whatif-reset:hover { color: var(--text-primary); border-color: var(--series-1); }
+
+  /* ---------- Cohort comparison ---------- */
+  .compare-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--gridline); font-size: 13px; }
+  .compare-row:last-child { border-bottom: none; }
+  .compare-label { font-weight: 600; flex: 1; }
+  .compare-values { color: var(--text-secondary); flex: 1.5; text-align: right; }
+  .compare-muted { color: var(--text-muted); }
+  .compare-diff { font-weight: 600; font-size: 12.5px; white-space: nowrap; width: 70px; text-align: right; }
+  .compare-diff.good { color: var(--status-good); }
+  .compare-diff.warn { color: var(--status-critical); }
+
+  /* ---------- Daily check-in ---------- */
+  .checkin-form { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+  .checkin-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .checkin-form input[type="range"] { width: 160px; accent-color: var(--series-1); }
+  .checkin-form input[type="number"] { width: 90px; }
+  .checkin-form button {
+    font: inherit; font-size: 13px; font-weight: 600; padding: 9px 16px; border-radius: 8px;
+    border: none; background: var(--series-1); color: #fff; cursor: pointer; align-self: flex-end;
+  }
+  .checkin-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .checkin-note { font-size: 12.5px; color: var(--text-muted); align-self: flex-end; padding-bottom: 9px; }
+  .checkin-note.good { color: var(--status-good); }
+  .checkin-note.warn { color: var(--status-critical); }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div class="login-screen hidden" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-mark">ALT</div>
+      <div class="brand-text"><strong>Digital Student Twin</strong><span>CSI1006 Mini Project</span></div>
+    </div>
+    <h1>Sign in</h1>
+    <p class="login-sub">Admins (faculty) see the full cohort; students see only their own twin. Every request is checked against your account server-side, not just hidden in the UI.</p>
+    <form id="loginForm">
+      <label>Username
+        <input type="text" id="loginUsername" autocomplete="username" required />
+      </label>
+      <label>Password
+        <input type="password" id="loginPassword" autocomplete="current-password" required />
+      </label>
+      <div class="login-error" id="loginError" style="display:none;"></div>
+      <button type="submit" id="loginSubmit">Log in</button>
+    </form>
+    <div class="login-demo">
+      <p>Demo accounts</p>
+      <ul>
+        <li><code>admin</code> / <code>admin123</code> — full admin view <button type="button" data-u="admin" data-p="admin123">use</button></li>
+        <li><code>s1000</code> / <code>student123</code> — student, on track <button type="button" data-u="s1000" data-p="student123">use</button></li>
+        <li><code>s1182</code> / <code>student123</code> — student, mid-range <button type="button" data-u="s1182" data-p="student123">use</button></li>
+        <li><code>s1093</code> / <code>student123</code> — student, flagged at-risk <button type="button" data-u="s1093" data-p="student123">use</button></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div class="app-shell" id="appShell">
+
+<nav class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">ALT</div>
+    <div class="brand-text"><strong>Digital Student Twin</strong><span>CSI1006 Mini Project</span></div>
+  </div>
+  <div class="nav-group" id="navGroup">
+    <button class="nav-link" data-page="overview" data-roles="admin">
+      <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.3"/><rect x="11" y="2.5" width="6.5" height="9.5" rx="1.3"/><rect x="2.5" y="11.5" width="6.5" height="6" rx="1.3"/><rect x="11" y="14.5" width="6.5" height="3" rx="1.3"/></svg></span>
+      Overview
+    </button>
+    <button class="nav-link" data-page="student" data-roles="admin,student">
+      <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="6.5" r="3.3"/><path d="M3.5 17c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg></span>
+      <span id="navStudentLabel">Student Twin</span>
+    </button>
+    <button class="nav-link" data-page="cohort" data-roles="admin">
+      <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17V10M9.5 17V4M16 17v-6.5"/></svg></span>
+      Cohort Analytics
+    </button>
+    <button class="nav-link" data-page="assistant" data-roles="admin,student">
+      <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 5.5A2.5 2.5 0 0 1 5.5 3h9A2.5 2.5 0 0 1 17 5.5v6A2.5 2.5 0 0 1 14.5 14H9l-4 3v-3H5.5A2.5 2.5 0 0 1 3 11.5v-6Z"/></svg></span>
+      Assistant
+    </button>
+    <button class="nav-link" data-page="about" data-roles="admin,student">
+      <span class="nav-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="7.2"/><path d="M10 9v4.2M10 6.7v.05"/></svg></span>
+      About &amp; Model
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="user-chip-avatar" id="userChipAvatar">·</div>
+      <div class="user-chip-text">
+        <strong id="userChipName">—</strong>
+        <span id="userChipRole">—</span>
+      </div>
+      <button class="logout-btn" id="logoutBtn" title="Log out">Log out</button>
+    </div>
+    <div class="sidebar-status" id="sidebarStatus"><span class="dot"></span><span id="sidebarStatusText">Connecting…</span></div>
+    600 synthetic students · trained RandomForest models
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- ===================== OVERVIEW (admin only) ===================== -->
+  <section class="page" id="page-overview">
+    <div class="page-header">
+      <div>
+        <h1>Overview</h1>
+        <p>Cohort-wide signals across all 600 students. Pick a student from the watchlist or the Student Twin page for individual predictions.</p>
+      </div>
+    </div>
+
+    <div class="grid" id="overviewStats">
+      <div class="card"><p class="stat-label">Students tracked</p><p class="stat-value" id="ovCount">—</p><p class="stat-sub">synthetic cohort</p></div>
+      <div class="card"><p class="stat-label">Average GPA</p><p class="stat-value" id="ovGpa">—</p><p class="stat-sub">0–10 scale</p></div>
+      <div class="card"><p class="stat-label">Flagged at-risk</p><p class="stat-value" id="ovRisk">—</p><p class="stat-sub">of the cohort</p></div>
+      <div class="card"><p class="stat-label">Avg. attendance</p><p class="stat-value" id="ovAtt">—</p><p class="stat-sub">% classes attended</p></div>
+    </div>
+
+    <div class="panel-row">
+      <div class="card">
+        <p class="panel-title">GPA distribution</p>
+        <div class="chart-box"><canvas id="gpaHistChart"></canvas></div>
+      </div>
+      <div class="card">
+        <p class="panel-title">Lowest-GPA at-risk students</p>
+        <div id="watchlist"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== STUDENT TWIN ===================== -->
+  <section class="page" id="page-student">
+    <div class="page-header">
+      <div>
+        <h1 id="pageStudentTitle">Student Twin</h1>
+        <p id="pageStudentDesc">Live GPA and risk prediction for one student, with an AI-generated (or rule-based fallback) recommendation and a per-student chat.</p>
+      </div>
+      <div class="page-actions" id="studentPageActions">
+        <select id="studentSelect"></select>
+        <input type="text" id="studentSearch" placeholder="jump to id…" style="width:130px;" />
+      </div>
+      <div class="page-actions" id="studentSelfBadge" style="display:none;">
+        <span class="self-badge">Viewing your data — <strong id="studentSelfBadgeText">—</strong></span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><p class="stat-label">Predicted GPA (0–10)</p><p class="stat-value" id="gpaValue">—</p><p class="stat-sub" id="gpaSub">&nbsp;</p></div>
+      <div class="card"><p class="stat-label">Academic risk</p><p class="stat-value" id="riskBadgeWrap">—</p><p class="stat-sub" id="riskSub">&nbsp;</p></div>
+      <div class="card"><p class="stat-label">Attendance</p><p class="stat-value" id="attValue">—</p><p class="stat-sub">% classes attended</p></div>
+      <div class="card"><p class="stat-label">Avg. marks</p><p class="stat-value" id="marksValue">—</p><p class="stat-sub">internal assessments</p></div>
+    </div>
+
+    <div class="card">
+      <p class="panel-title">Recommendation <span id="sourcePill"></span></p>
+      <p class="reco-headline" id="recoHeadline">Select a student to see recommendations.</p>
+      <ul class="reco-tips" id="recoTips"></ul>
+      <p class="reco-note" id="recoNote"></p>
+
+      <div class="chat-wrap">
+        <p class="panel-title" style="margin-bottom:8px;">Ask about this student</p>
+        <div class="suggestion-chips" id="suggestionChipsStudent" style="margin-bottom:8px;"></div>
+        <div class="chat-log" id="chatLogStudent"><div class="chat-empty">Ask a question below — answers are grounded in this student's real data and model predictions.</div></div>
+        <div id="chatDisabledNoteStudent" class="chat-disabled-note" style="display:none !important;"></div>
+        <form class="chat-form" id="chatFormStudent">
+          <input type="text" id="chatInputStudent" placeholder="Ask about this student…" autocomplete="off" />
+          <button type="submit" id="chatSendStudent">Ask</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <div class="card">
+        <p class="panel-title">Signal health</p>
+        <div id="signalBars"></div>
+      </div>
+      <div class="card">
+        <p class="panel-title">How you compare</p>
+        <div id="cohortCompareBody"></div>
+      </div>
+    </div>
+
+    <div class="card" id="checkinCard" style="display:none;">
+      <p class="panel-title">Daily check-in</p>
+      <p class="stat-sub" style="margin-bottom:12px;">Log how you're doing today — this actually updates your twin's mood and sleep signals and re-runs your prediction live.</p>
+      <div class="checkin-form">
+        <label>Mood today: <span id="checkinMoodVal">3</span>/5
+          <input type="range" id="checkinMood" min="1" max="5" step="1" value="3" />
+        </label>
+        <label>Sleep last night (hours)
+          <input type="number" id="checkinSleep" min="0" max="14" step="0.25" value="7" />
+        </label>
+        <button type="button" id="checkinSubmit">Save check-in</button>
+        <span class="checkin-note" id="checkinNote"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="panel-title">What-if simulator</p>
+      <p class="stat-sub" style="margin-bottom:10px;">Try hypothetical values and see how the model's prediction would change — nothing here is saved.</p>
+      <div id="whatIfSliders"></div>
+      <div class="whatif-result">
+        <div>
+          <p class="stat-label" style="margin-bottom:2px;">Predicted GPA</p>
+          <p class="stat-value" id="whatIfGpa">—</p>
+        </div>
+        <div>
+          <p class="stat-label" style="margin-bottom:2px;">Academic risk</p>
+          <div id="whatIfRisk"></div>
+        </div>
+      </div>
+      <p class="whatif-delta" id="whatIfDelta"></p>
+      <p class="whatif-delta" id="whatIfRiskDelta"></p>
+      <button type="button" class="whatif-reset" id="whatIfReset">Reset to my current values</button>
+    </div>
+  </section>
+
+  <!-- ===================== COHORT ANALYTICS (admin only) ===================== -->
+  <section class="page" id="page-cohort">
+    <div class="page-header">
+      <div>
+        <h1>Cohort Analytics</h1>
+        <p>How the models reason across the whole cohort, and the raw data behind every prediction.</p>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <div class="card">
+        <p class="panel-title">Attendance vs. marks, by risk status</p>
+        <div class="chart-box tall"><canvas id="scatterChart"></canvas></div>
+      </div>
+      <div class="card">
+        <p class="panel-title">What drives the GPA prediction</p>
+        <div class="chart-box tall"><canvas id="importanceChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="panel-title">
+        All students
+        <input type="text" id="tableSearch" placeholder="filter by id…" style="width:150px;" />
+      </p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>ID</th><th>Att.%</th><th>Marks</th><th>Study hrs</th><th>Assign.%</th><th>Mood</th><th>Sleep</th><th>GPA</th><th>Risk</th></tr></thead>
+          <tbody id="studentTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ASSISTANT ===================== -->
+  <section class="page" id="page-assistant">
+    <div class="page-header">
+      <div>
+        <h1>Assistant</h1>
+        <p id="pageAssistantDesc">Full-screen chat with the mentor assistant, grounded in one student's real signals and predictions.</p>
+      </div>
+      <div class="page-actions" id="assistantPageActions">
+        <select id="assistantStudentSelect"></select>
+      </div>
+      <div class="page-actions" id="assistantSelfBadge" style="display:none;">
+        <span class="self-badge">Ask about <strong id="assistantSelfBadgeText">—</strong></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="chatDisabledNoteAssistant" class="chat-disabled-note" style="display:none !important;"></div>
+      <div class="suggestion-chips" id="suggestionChips"></div>
+      <div class="chat-log tall" id="chatLogAssistant"><div class="chat-empty">Pick a student above, then ask a question — e.g. "why is this student flagged?" or "what's the single highest-impact change they could make?"</div></div>
+      <form class="chat-form" id="chatFormAssistant">
+        <input type="text" id="chatInputAssistant" placeholder="Ask the assistant…" autocomplete="off" />
+        <button type="submit" id="chatSendAssistant">Ask</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===================== ABOUT ===================== -->
+  <section class="page" id="page-about">
+    <div class="page-header">
+      <div>
+        <h1>About &amp; Model</h1>
+        <p>What's real, what's a placeholder, and the honest numbers behind this prototype — CSI1006 Mini Project, Review-2.</p>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <div class="card about-section" style="margin-bottom:0;">
+        <h3>What this is</h3>
+        <p>ALT models each student as a data-driven "digital twin" built from six behavioural and academic signals — attendance, marks, study hours, assignment completion, daily check-in mood, and sleep. Two real, trained scikit-learn models turn those signals into a GPA forecast and an academic-risk flag; a recommendation layer (Gemini-first, rule-based fallback) turns the forecast into guidance. Access is role-based: an admin (faculty) account sees the whole cohort, a student account only ever sees its own twin — enforced by the backend on every request, not just hidden in the UI.</p>
+        <h3>Milestone status</h3>
+        <div class="pill-row">
+          <span class="status-pill done">Data pipeline &amp; twin store</span>
+          <span class="status-pill done">ML prediction models</span>
+          <span class="status-pill done">Backend API</span>
+          <span class="status-pill done">Login &amp; role-based access</span>
+          <span class="status-pill progress" id="chatbotStatusPill">Chatbot / recommendations</span>
+          <span class="status-pill progress">Dashboard (multi-page)</span>
+          <span class="status-pill todo">Cloud deployment</span>
+        </div>
+      </div>
+      <div class="card">
+        <p class="panel-title">Model performance (held-out 20% test split)</p>
+        <div class="metrics-footer" id="metricsFooter">
+          <div class="card"><p class="stat-label">GPA model R²</p><p class="stat-value">—</p></div>
+          <div class="card"><p class="stat-label">GPA model MAE</p><p class="stat-value">—</p></div>
+          <div class="card"><p class="stat-label">Risk accuracy</p><p class="stat-value">—</p></div>
+          <div class="card"><p class="stat-label">Risk F1</p><p class="stat-value">—</p></div>
+          <div class="card"><p class="stat-label">Risk ROC-AUC</p><p class="stat-value">—</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card about-section" style="margin-bottom:0;">
+      <h3>Honest about what's real</h3>
+      <p><strong>Real:</strong> the dataset generation, both trained models and their reported metrics, the FastAPI backend, the login system (bcrypt-hashed passwords, signed JWT session tokens, per-request server-side authorization — see <code>auth.py</code>), the Gemini integration code (recommendation + chat endpoints), and this dashboard — all running live, not screenshots.</p>
+      <p><strong>Placeholder / in progress:</strong> the frontend is HTML/JS rather than the planned React + Tailwind CSS; there's no PostgreSQL database yet (the CSV and a flat <code>users.json</code> are the store); no cloud deployment (Vercel/Render) yet. The login system is real hashing + real signature verification + real per-request checks, appropriately scoped for a course prototype — not hardened for production use with real student records.</p>
+      <p id="geminiExplainer"><strong>Gemini chatbot:</strong> checking status…</p>
+    </div>
+  </section>
+
+</main>
+</div><!-- /app-shell -->
+
+<script>
+const API_BASE = "";
+let students = [];
+let metrics = null;
+let cohortSummary = null;
+let cohortAggregate = null;
+let scatterChart = null;
+let importanceChart = null;
+let gpaHistChart = null;
+let selectedId = null;
+let currentRaw = null;
+let geminiConfigured = false;
+const chatHistories = {}; // studentId -> [{role, text}]
+
+// Six behavioural/academic signals, shared by the progress bars and the
+// what-if simulator. threshold = the value the rule-based recommendation
+// engine (app.py) treats as "healthy" for that signal.
+const SIGNAL_METRICS = [
+  { key: "attendance_pct", label: "Attendance", unit: "%", min: 0, max: 100, step: 1, threshold: 75 },
+  { key: "avg_marks", label: "Average marks", unit: "", min: 0, max: 100, step: 1, threshold: 60 },
+  { key: "study_hours_per_day", label: "Study hours/day", unit: "h", min: 0, max: 8, step: 0.25, threshold: 2 },
+  { key: "assignment_completion_pct", label: "Assignment completion", unit: "%", min: 0, max: 100, step: 1, threshold: 70 },
+  { key: "daily_checkin_mood", label: "Mood (1–5)", unit: "", min: 1, max: 5, step: 1, threshold: 3 },
+  { key: "sleep_hours", label: "Sleep/night", unit: "h", min: 0, max: 12, step: 0.25, threshold: 6 },
+];
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+// ---------------- Auth state ----------------
+let authToken = null, authRole = null, authStudentId = null, authDisplayName = null;
+
+function loadAuthFromStorage() {
+  try {
+    const raw = localStorage.getItem("alt_auth");
+    if (!raw) return false;
+    const a = JSON.parse(raw);
+    if (!a || !a.access_token) return false;
+    authToken = a.access_token; authRole = a.role; authStudentId = a.student_id; authDisplayName = a.display_name;
+    return true;
+  } catch (e) { return false; }
+}
+function saveAuthToStorage() {
+  try {
+    localStorage.setItem("alt_auth", JSON.stringify({
+      access_token: authToken, role: authRole, student_id: authStudentId, display_name: authDisplayName,
+    }));
+  } catch (e) { /* ignore -- private browsing etc. */ }
+}
+function clearAuthStorage() {
+  try { localStorage.removeItem("alt_auth"); } catch (e) { /* ignore */ }
+}
+
+const fmt1 = (v) => (v === null || v === undefined || isNaN(v)) ? "—" : Number(v).toFixed(1);
+const fmt2 = (v) => (v === null || v === undefined || isNaN(v)) ? "—" : Number(v).toFixed(2);
+
+async function fetchJSON(path, opts) {
+  opts = opts || {};
+  const headers = Object.assign({}, opts.headers || {}, authToken ? { "Authorization": "Bearer " + authToken } : {});
+  const res = await fetch(API_BASE + path, Object.assign({}, opts, { headers }));
+  if (res.status === 401) {
+    showLogin("Your session expired — please log in again.");
+    throw new Error("session expired");
+  }
+  if (!res.ok) { const t = await res.text(); throw new Error(path + " -> " + res.status + " " + t); }
+  return res.json();
+}
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+// ---------------- Login / logout ----------------
+function showLogin(message) {
+  clearAuthStorage();
+  authToken = authRole = authStudentId = authDisplayName = null;
+  document.getElementById("appShell").classList.remove("active");
+  document.getElementById("loginScreen").classList.remove("hidden");
+  document.getElementById("loginPassword").value = "";
+  const errEl = document.getElementById("loginError");
+  if (message) { errEl.textContent = message; errEl.style.display = "block"; }
+  else { errEl.style.display = "none"; }
+}
+
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const username = document.getElementById("loginUsername").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const errEl = document.getElementById("loginError");
+  errEl.style.display = "none";
+  const btn = document.getElementById("loginSubmit");
+  btn.disabled = true; btn.textContent = "Signing in…";
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Login failed");
+    authToken = data.access_token; authRole = data.role; authStudentId = data.student_id; authDisplayName = data.display_name;
+    saveAuthToStorage();
+    await enterApp();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = "block";
+  } finally {
+    btn.disabled = false; btn.textContent = "Log in";
+  }
+});
+
+document.querySelectorAll(".login-demo button[data-u]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("loginUsername").value = btn.dataset.u;
+    document.getElementById("loginPassword").value = btn.dataset.p;
+  });
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => showLogin());
+
+// ---------------- Router ----------------
+const PAGES = ["overview", "student", "cohort", "assistant", "about"];
+const STUDENT_PAGES = ["student", "assistant", "about"];
+function pageAllowed(page) { return (authRole === "admin" ? PAGES : STUDENT_PAGES).includes(page); }
+
+function navigate(page) {
+  if (!pageAllowed(page)) page = authRole === "admin" ? "overview" : "student";
+  PAGES.forEach(p => {
+    document.getElementById("page-" + p).classList.toggle("active", p === page);
+  });
+  document.querySelectorAll(".nav-link").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.page === page);
+  });
+  location.hash = "#/" + page;
+  // Charts sometimes need a resize nudge when their container becomes visible.
+  requestAnimationFrame(() => { if (scatterChart) scatterChart.resize(); if (importanceChart) importanceChart.resize(); if (gpaHistChart) gpaHistChart.resize(); });
+}
+document.querySelectorAll(".nav-link").forEach(btn => {
+  btn.addEventListener("click", () => navigate(btn.dataset.page));
+});
+window.addEventListener("hashchange", () => { if (authToken) navigate((location.hash || "#/overview").slice(2)); });
+
+// ---------------- Overview page (admin only) ----------------
+function renderOverview() {
+  document.getElementById("ovCount").textContent = cohortSummary.n_students;
+  document.getElementById("ovGpa").textContent = fmt2(cohortSummary.avg_gpa);
+  document.getElementById("ovRisk").textContent = cohortSummary.pct_at_risk + "%";
+  document.getElementById("ovAtt").textContent = cohortSummary.avg_attendance + "%";
+
+  const edges = cohortSummary.gpa_histogram.bin_edges;
+  const labels = edges.slice(0, -1).map((e, i) => `${e}–${edges[i + 1]}`);
+  gpaHistChart = new Chart(document.getElementById("gpaHistChart"), {
+    type: "bar",
+    data: { labels, datasets: [{ data: cohortSummary.gpa_histogram.counts, backgroundColor: cssVar("--series-1"), borderRadius: 4, maxBarThickness: 34 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { title: { display: true, text: "GPA range", color: cssVar("--text-muted") }, grid: { display: false }, ticks: { color: cssVar("--text-secondary") } },
+        y: { title: { display: true, text: "Students", color: cssVar("--text-muted") }, grid: { color: cssVar("--gridline") }, ticks: { color: cssVar("--text-secondary") } },
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+
+  const wl = document.getElementById("watchlist");
+  wl.innerHTML = cohortSummary.at_risk_watchlist.map(s => `
+    <div class="watchlist-item" data-id="${s.student_id}">
+      <span class="wl-id">${s.student_id}</span>
+      <span class="wl-meta">GPA ${fmt2(s.gpa)} · attendance ${fmt1(s.attendance_pct)}%</span>
+    </div>`).join("");
+  wl.querySelectorAll(".watchlist-item").forEach(el => {
+    el.addEventListener("click", () => { jumpToStudent(el.dataset.id); });
+  });
+}
+
+function jumpToStudent(id) {
+  if (authRole !== "admin") return; // students can only ever view their own id
+  document.getElementById("studentSelect").value = id;
+  document.getElementById("assistantStudentSelect").value = id;
+  selectStudent(id);
+  navigate("student");
+}
+
+// ---------------- Cohort Analytics page (admin only) ----------------
+function buildScatter() {
+  const notAtRisk = students.filter(s => s.academic_risk === 0).map(s => ({ x: s.attendance_pct, y: s.avg_marks, id: s.student_id }));
+  const atRisk = students.filter(s => s.academic_risk === 1).map(s => ({ x: s.attendance_pct, y: s.avg_marks, id: s.student_id }));
+  scatterChart = new Chart(document.getElementById("scatterChart"), {
+    type: "scatter",
+    data: {
+      datasets: [
+        { label: "Not at risk", data: notAtRisk, backgroundColor: cssVar("--status-good") + "b3", pointRadius: 4, pointHoverRadius: 6 },
+        { label: "At risk", data: atRisk, backgroundColor: cssVar("--status-critical") + "cc", pointRadius: 4, pointHoverRadius: 6 },
+        { label: "Selected", data: [], backgroundColor: "transparent", borderColor: cssVar("--text-primary"), borderWidth: 2, pointRadius: 9, pointHoverRadius: 9 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      onClick: (evt, elements) => {
+        if (!elements.length) return;
+        const el = elements[0];
+        const pt = scatterChart.data.datasets[el.datasetIndex].data[el.index];
+        if (pt && pt.id) jumpToStudent(pt.id);
+      },
+      scales: {
+        x: { title: { display: true, text: "Attendance %", color: cssVar("--text-muted") }, grid: { color: cssVar("--gridline") }, ticks: { color: cssVar("--text-secondary") } },
+        y: { title: { display: true, text: "Average marks", color: cssVar("--text-muted") }, grid: { color: cssVar("--gridline") }, ticks: { color: cssVar("--text-secondary") } },
+      },
+      plugins: {
+        legend: { position: "bottom", labels: { color: cssVar("--text-secondary"), usePointStyle: true } },
+        tooltip: { callbacks: { label: (item) => { const p = item.raw; return `${p.id}: attendance ${fmt1(p.x)}%, marks ${fmt1(p.y)} (click to open)`; } } },
+      },
+    },
+  });
+}
+
+function labelize(key) { return key.replace(/_/g, " ").replace(/pct/, "%").replace(/\b\w/g, c => c.toUpperCase()); }
+
+function buildImportanceChart() {
+  const entries = Object.entries(metrics.feature_importance_gpa);
+  importanceChart = new Chart(document.getElementById("importanceChart"), {
+    type: "bar",
+    data: { labels: entries.map(([k]) => labelize(k)), datasets: [{ data: entries.map(([, v]) => v), backgroundColor: cssVar("--series-1"), borderRadius: 4, maxBarThickness: 22 }] },
+    options: {
+      indexAxis: "y", responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { color: cssVar("--gridline") }, ticks: { color: cssVar("--text-secondary") } }, y: { grid: { display: false }, ticks: { color: cssVar("--text-secondary") } } },
+      plugins: { legend: { display: false } },
+    },
+  });
+}
+
+function populateTable(list) {
+  const body = document.getElementById("studentTableBody");
+  body.innerHTML = list.map(s => `
+    <tr data-id="${s.student_id}">
+      <td>${s.student_id}</td><td>${fmt1(s.attendance_pct)}</td><td>${fmt1(s.avg_marks)}</td>
+      <td>${fmt2(s.study_hours_per_day)}</td><td>${fmt1(s.assignment_completion_pct)}</td>
+      <td>${fmt2(s.daily_checkin_mood)}</td><td>${fmt2(s.sleep_hours)}</td>
+      <td>${fmt2(s.gpa)}</td><td>${s.academic_risk ? "At risk" : "OK"}</td>
+    </tr>`).join("");
+  body.querySelectorAll("tr").forEach(tr => tr.addEventListener("click", () => jumpToStudent(tr.dataset.id)));
+}
+document.getElementById("tableSearch").addEventListener("input", (e) => {
+  const q = e.target.value.trim().toUpperCase();
+  populateTable(q ? students.filter(s => s.student_id.toUpperCase().includes(q)) : students);
+});
+
+// ---------------- Student Twin page ----------------
+function populateSelects(list) {
+  const opts = list.map(s => `<option value="${s.student_id}">${s.student_id}</option>`).join("");
+  document.getElementById("studentSelect").innerHTML = opts;
+  document.getElementById("assistantStudentSelect").innerHTML = opts;
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderTableHtml(lines) {
+  if (lines.length < 2) return lines.join("\n");
+  const headers = lines[0].split("|").slice(1, -1).map(h => `<th>${escapeHtml(h.trim())}</th>`).join("");
+  const rows = lines.slice(2).map(line => {
+    const cells = line.split("|").slice(1, -1).map(c => `<td>${c.trim()}</td>`).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
+  return `<table class="chat-table"><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function formatChatMarkdown(text, simData) {
+  if (!text) return "";
+  let html = text;
+
+  // Format markdown tables
+  if (html.includes("|")) {
+    const lines = html.split("\n");
+    let tableLines = [];
+    let inTable = false;
+    let newLines = [];
+    for (let line of lines) {
+      if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+        inTable = true;
+        tableLines.push(line.trim());
+      } else {
+        if (inTable) {
+          newLines.push(renderTableHtml(tableLines));
+          tableLines = [];
+          inTable = false;
+        }
+        newLines.push(line);
+      }
+    }
+    if (inTable) {
+      newLines.push(renderTableHtml(tableLines));
+    }
+    html = newLines.join("\n");
+  }
+
+  // Format email/message code blocks
+  html = html.replace(/```text\n([\s\S]*?)\n```/g, (match, code) => {
+    return `<div class="draft-box">
+      <div class="draft-box-header"><span>✉️ Personalized Advisor Email Draft</span><button type="button" class="btn-copy" onclick="copyDraftMessage(this)">📋 Copy Message</button></div>
+      <div class="draft-content" style="white-space:pre-wrap; font-family:inherit; font-size:12.5px;">${escapeHtml(code)}</div>
+    </div>`;
+  });
+
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  // Quotes
+  html = html.replace(/^> (.*)$/gm, '<blockquote style="border-left:3px solid var(--series-1); padding-left:10px; margin:6px 0; color:var(--text-secondary);">$1</blockquote>');
+  // Line items
+  html = html.replace(/^- (.*)$/gm, "• $1");
+
+  // Attach simulation card if available
+  if (simData) {
+    const isGpaPos = simData.delta_gpa >= 0;
+    const isRiskPos = simData.delta_risk_pct <= 0;
+    html += `
+    <div class="chat-sim-card">
+      <div class="chat-sim-title">⚡ <strong>Live Model Simulation:</strong> ${escapeHtml(simData.feature_name)} (${simData.old_val}${simData.unit} ➔ ${simData.new_val}${simData.unit})</div>
+      <div class="chat-sim-grid">
+        <div class="chat-sim-stat">
+          <span class="chat-sim-label">Predicted GPA</span>
+          <span>${simData.old_gpa.toFixed(2)} ➔ <strong>${simData.new_gpa.toFixed(2)}</strong></span>
+          <span class="diff-badge ${isGpaPos ? 'positive' : 'negative'}">${isGpaPos ? '+' : ''}${simData.delta_gpa.toFixed(2)} GPA</span>
+        </div>
+        <div class="chat-sim-stat">
+          <span class="chat-sim-label">Risk Probability</span>
+          <span>${simData.old_risk_pct.toFixed(1)}% ➔ <strong>${simData.new_risk_pct.toFixed(1)}%</strong></span>
+          <span class="diff-badge ${isRiskPos ? 'positive' : 'negative'}">${simData.delta_risk_pct <= 0 ? '' : '+'}${simData.delta_risk_pct.toFixed(1)}%</span>
+        </div>
+      </div>
+      <button type="button" class="btn-chat-action" onclick="applyChatSim('${simData.feature}', ${simData.new_val})">⚡ Apply to What-If Panel</button>
+    </div>`;
+  }
+
+  return html;
+}
+
+function renderChatLog(containerEl, history) {
+  if (!containerEl) return;
+  if (!history || !history.length) {
+    containerEl.innerHTML = `<div class="chat-empty">Ask a question or pick a suggested prompt below.</div>`;
+    return;
+  }
+  containerEl.innerHTML = history.map(t => {
+    if (t.role === "user") {
+      return `<div class="chat-msg user">${escapeHtml(t.text)}</div>`;
+    } else {
+      return `<div class="chat-msg model">${formatChatMarkdown(t.text, t.simulation)}</div>`;
+    }
+  }).join("");
+  containerEl.scrollTop = containerEl.scrollHeight;
+}
+
+window.applyChatSim = function(featureKey, targetVal) {
+  navigate("student");
+  setTimeout(() => {
+    const slider = document.getElementById("wiSlider-" + featureKey);
+    if (slider) {
+      slider.value = targetVal;
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+      slider.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, 120);
+};
+
+window.copyDraftMessage = function(btn) {
+  const draftBox = btn.closest(".draft-box");
+  const textEl = draftBox ? draftBox.querySelector(".draft-content") : null;
+  if (textEl) {
+    navigator.clipboard.writeText(textEl.textContent.trim()).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = "✓ Copied!";
+      btn.style.color = "#22c55e";
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.color = "";
+      }, 2000);
+    });
+  }
+};
+
+function updateSuggestionChips(chips) {
+  if (!chips || !chips.length) return;
+  const html = chips.map(c => `<button type="button" class="chip">${escapeHtml(c)}</button>`).join("");
+  ["suggestionChips", "suggestionChipsStudent"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = html;
+      el.querySelectorAll(".chip").forEach(btn => {
+        btn.addEventListener("click", () => {
+          sendChatWithMessage(btn.textContent.trim());
+        });
+      });
+    }
+  });
+}
+
+function sendChatWithMessage(msg) {
+  const inputEl = document.getElementById("chatInputAssistant");
+  const sendBtn = document.getElementById("chatSendAssistant");
+  const logEl = document.getElementById("chatLogAssistant");
+  if (inputEl) inputEl.value = msg;
+  sendChat(inputEl, sendBtn, logEl);
+}
+
+async function selectStudent(id) {
+  selectedId = id;
+  try {
+    // Only the fast, always-local calls here. The recommendation can hit
+    // Gemini and take a while (or, on a flaky network, run into the request
+    // timeout in gemini_chat.py) -- it's loaded separately below via
+    // loadRecommendation() so a slow/unreachable Gemini API never blocks
+    // the prediction, signal bars, comparison panel, or what-if simulator
+    // from rendering immediately.
+    const [prediction, raw] = await Promise.all([
+      fetchJSON(`/api/predict/${id}`), fetchJSON(`/api/students/${id}`),
+    ]);
+
+    document.getElementById("gpaValue").textContent = fmt2(prediction.predicted_gpa);
+    document.getElementById("gpaSub").textContent = raw ? `logged GPA: ${fmt2(raw.gpa)}` : "";
+
+    const riskWrap = document.getElementById("riskBadgeWrap");
+    riskWrap.innerHTML = prediction.at_risk ? `<span class="badge critical">At risk</span>` : `<span class="badge good">On track</span>`;
+    document.getElementById("riskSub").textContent = `risk probability: ${(prediction.risk_probability * 100).toFixed(1)}%`;
+
+    document.getElementById("attValue").textContent = raw ? fmt1(raw.attendance_pct) + "%" : "—";
+    document.getElementById("marksValue").textContent = raw ? fmt1(raw.avg_marks) : "—";
+
+    if (!chatHistories[id]) chatHistories[id] = [];
+    renderChatLog(document.getElementById("chatLogStudent"), chatHistories[id]);
+    renderChatLog(document.getElementById("chatLogAssistant"), chatHistories[id]);
+    renderSuggestionChips(prediction);
+
+    currentRaw = raw;
+    renderSignalBars(raw);
+    renderCohortCompare(raw);
+    initWhatIf(raw, prediction.predicted_gpa, prediction.risk_probability);
+    if (raw) {
+      document.getElementById("checkinMood").value = Math.round(raw.daily_checkin_mood);
+      document.getElementById("checkinMoodVal").textContent = Math.round(raw.daily_checkin_mood);
+      document.getElementById("checkinSleep").value = raw.sleep_hours;
+    }
+
+    if (scatterChart && raw) {
+      scatterChart.data.datasets[2].data = [{ x: raw.attendance_pct, y: raw.avg_marks, id: raw.student_id }];
+      scatterChart.update();
+    }
+    setSidebarStatus(true, "Connected — live predictions from FastAPI backend.");
+
+    loadRecommendation(id);
+  } catch (err) {
+    setSidebarStatus(false, "API error: " + err.message);
+  }
+}
+
+async function loadRecommendation(id) {
+  document.getElementById("recoHeadline").textContent = "Loading recommendation…";
+  document.getElementById("recoTips").innerHTML = "";
+  document.getElementById("sourcePill").innerHTML = "";
+  document.getElementById("recoNote").textContent = "";
+  try {
+    const reco = await fetchJSON(`/api/recommend/${id}`);
+    if (selectedId !== id) return; // student was switched again before this resolved -- discard
+    document.getElementById("recoHeadline").textContent = reco.recommendation.headline;
+    document.getElementById("recoTips").innerHTML = reco.recommendation.tips.map(t => `<li>${t}</li>`).join("");
+    const src = reco.recommendation.source || "rule_based";
+    document.getElementById("sourcePill").innerHTML = src === "gemini"
+      ? `<span class="source-pill gemini">Gemini-generated</span>` : `<span class="source-pill rule_based">Rule-based</span>`;
+    document.getElementById("recoNote").textContent = src === "gemini"
+      ? "Generated live by the Gemini API from this student's real signals and model prediction."
+      : "Rule-based tips — falls back automatically here whenever Gemini isn't configured or isn't reachable.";
+  } catch (err) {
+    if (selectedId !== id) return;
+    document.getElementById("recoHeadline").textContent = "Recommendation unavailable right now.";
+    document.getElementById("recoNote").textContent = "Could not reach the recommendation engine: " + err.message;
+  }
+}
+
+function renderSuggestionChips(prediction) {
+  const chips = prediction.at_risk
+    ? ["Why is this student flagged as at-risk?", "What's the single highest-impact change they could make?", "Draft a short check-in message to this student."]
+    : ["What's helping this student stay on track?", "How could they push toward a higher GPA?", "Any early warning signs to watch for?"];
+  updateSuggestionChips(chips);
+}
+
+function setSidebarStatus(ok, text) {
+  const el = document.getElementById("sidebarStatus");
+  el.className = "sidebar-status" + (ok ? "" : " err");
+  document.getElementById("sidebarStatusText").textContent = text;
+}
+
+// ---------------- Signal health (progress bars) ----------------
+function renderSignalBars(raw) {
+  const el = document.getElementById("signalBars");
+  if (!raw) { el.innerHTML = `<p class="stat-sub">No data.</p>`; return; }
+  el.innerHTML = SIGNAL_METRICS.map(m => {
+    const v = raw[m.key];
+    const pct = clamp01((v - m.min) / (m.max - m.min)) * 100;
+    const good = v >= m.threshold;
+    return `
+      <div class="signal-row">
+        <div class="signal-label"><span>${m.label}</span><span class="signal-value">${fmt2(v)}${m.unit}</span></div>
+        <div class="signal-track"><div class="signal-fill ${good ? "good" : "warn"}" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join("");
+}
+
+// ---------------- How you compare (cohort aggregate, no per-student data) ----------------
+function renderCohortCompare(raw) {
+  const el = document.getElementById("cohortCompareBody");
+  if (!raw || !cohortAggregate) { el.innerHTML = `<p class="stat-sub">Comparison unavailable.</p>`; return; }
+  const rows = [
+    { label: "Attendance", key: "attendance_pct", avgKey: "avg_attendance", unit: "%" },
+    { label: "Average marks", key: "avg_marks", avgKey: "avg_marks", unit: "" },
+    { label: "Study hours/day", key: "study_hours_per_day", avgKey: "avg_study_hours", unit: "h" },
+    { label: "Assignment completion", key: "assignment_completion_pct", avgKey: "avg_assignment_completion", unit: "%" },
+    { label: "Sleep/night", key: "sleep_hours", avgKey: "avg_sleep_hours", unit: "h" },
+  ];
+  el.innerHTML = rows.map(r => {
+    const mine = raw[r.key], avg = cohortAggregate[r.avgKey];
+    const diff = mine - avg;
+    const up = diff >= 0;
+    return `<div class="compare-row">
+      <span class="compare-label">${r.label}</span>
+      <span class="compare-values">${fmt1(mine)}${r.unit} <span class="compare-muted">vs class avg ${fmt1(avg)}${r.unit}</span></span>
+      <span class="compare-diff ${up ? "good" : "warn"}">${up ? "▲" : "▼"} ${fmt1(Math.abs(diff))}${r.unit}</span>
+    </div>`;
+  }).join("");
+}
+
+// ---------------- What-if simulator ----------------
+let whatIfBaselineGpa = null;
+let whatIfBaselineRisk = null;
+let whatIfTimer = null;
+
+function initWhatIf(raw, baselineGpa, baselineRisk) {
+  if (!raw) return;
+  whatIfBaselineGpa = baselineGpa;
+  whatIfBaselineRisk = typeof baselineRisk === "number" ? baselineRisk : null;
+  const el = document.getElementById("whatIfSliders");
+  el.innerHTML = SIGNAL_METRICS.map(m => `
+    <div class="whatif-row">
+      <div class="whatif-label"><span>${m.label}</span><span class="whatif-value" id="wiVal-${m.key}">${fmt2(raw[m.key])}${m.unit}</span></div>
+      <input type="range" class="whatif-slider" id="wiSlider-${m.key}" min="${m.min}" max="${m.max}" step="${m.step}" value="${raw[m.key]}" data-key="${m.key}" data-unit="${m.unit}" />
+    </div>`).join("");
+  el.querySelectorAll(".whatif-slider").forEach(s => s.addEventListener("input", onWhatIfSliderInput));
+  runWhatIf();
+}
+
+function onWhatIfSliderInput(e) {
+  const key = e.target.dataset.key;
+  document.getElementById("wiVal-" + key).textContent = fmt2(parseFloat(e.target.value)) + e.target.dataset.unit;
+  clearTimeout(whatIfTimer);
+  whatIfTimer = setTimeout(runWhatIf, 200);
+}
+
+async function runWhatIf() {
+  const sliders = document.querySelectorAll(".whatif-slider");
+  if (!sliders.length) return;
+  const payload = {};
+  sliders.forEach(s => { payload[s.dataset.key] = parseFloat(s.value); });
+  try {
+    const pred = await fetchJSON("/api/predict", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    });
+    document.getElementById("whatIfGpa").textContent = fmt2(pred.predicted_gpa);
+    document.getElementById("whatIfRisk").innerHTML = pred.at_risk
+      ? `<span class="badge critical">At risk</span>` : `<span class="badge good">On track</span>`;
+    const deltaEl = document.getElementById("whatIfDelta");
+    if (whatIfBaselineGpa != null) {
+      const delta = pred.predicted_gpa - whatIfBaselineGpa;
+      const sign = delta >= 0 ? "+" : "";
+      deltaEl.textContent = `${sign}${fmt2(delta)} vs your current twin (${fmt2(whatIfBaselineGpa)})`;
+      deltaEl.className = "whatif-delta " + (delta >= 0 ? "good" : "warn");
+    }
+    const riskDeltaEl = document.getElementById("whatIfRiskDelta");
+    if (riskDeltaEl) {
+      if (whatIfBaselineRisk != null && typeof pred.risk_probability === "number") {
+        const riskPct = pred.risk_probability * 100;
+        const basePct = whatIfBaselineRisk * 100;
+        const riskDelta = riskPct - basePct;
+        // The GPA number can stay flat while risk probability still moves --
+        // both are real model outputs, so show this even when the GPA didn't change.
+        const sign = riskDelta >= 0 ? "+" : "";
+        riskDeltaEl.textContent = `risk probability: ${fmt1(riskPct)}% (${sign}${fmt1(riskDelta)} pts vs your current ${fmt1(basePct)}%)`;
+        riskDeltaEl.className = "whatif-delta " + (riskDelta <= 0 ? "good" : "warn");
+      } else {
+        riskDeltaEl.textContent = "";
+      }
+    }
+  } catch (err) { /* transient -- leave last good result showing */ }
+}
+
+document.getElementById("whatIfReset").addEventListener("click", () => {
+  if (!currentRaw) return;
+  SIGNAL_METRICS.forEach(m => {
+    const slider = document.getElementById("wiSlider-" + m.key);
+    if (!slider) return;
+    slider.value = currentRaw[m.key];
+    document.getElementById("wiVal-" + m.key).textContent = fmt2(currentRaw[m.key]) + m.unit;
+  });
+  runWhatIf();
+});
+
+// ---------------- Daily check-in ----------------
+document.getElementById("checkinMood").addEventListener("input", (e) => {
+  document.getElementById("checkinMoodVal").textContent = e.target.value;
+});
+document.getElementById("checkinSubmit").addEventListener("click", async () => {
+  if (!selectedId) return;
+  const mood = parseFloat(document.getElementById("checkinMood").value);
+  const sleep = parseFloat(document.getElementById("checkinSleep").value);
+  const btn = document.getElementById("checkinSubmit");
+  const note = document.getElementById("checkinNote");
+  btn.disabled = true;
+  note.className = "checkin-note";
+  note.textContent = "Saving…";
+  try {
+    await fetchJSON(`/api/students/${selectedId}/checkin`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ daily_checkin_mood: mood, sleep_hours: sleep }),
+    });
+    note.className = "checkin-note good";
+    note.textContent = "Saved — your twin just updated.";
+    await selectStudent(selectedId); // refresh everything: stats, bars, recommendation, comparison, what-if baseline
+  } catch (err) {
+    note.className = "checkin-note warn";
+    note.textContent = "Could not save: " + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById("studentSelect").addEventListener("change", (e) => {
+  document.getElementById("assistantStudentSelect").value = e.target.value;
+  selectStudent(e.target.value);
+});
+document.getElementById("assistantStudentSelect").addEventListener("change", (e) => {
+  document.getElementById("studentSelect").value = e.target.value;
+  selectStudent(e.target.value);
+});
+document.getElementById("studentSearch").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const q = e.target.value.trim().toUpperCase();
+  const match = students.find(s => s.student_id.toUpperCase() === q || s.student_id.toUpperCase() === "S" + q);
+  if (match) jumpToStudent(match.student_id);
+});
+
+// ---------------- Chat (shared logic, two forms) ----------------
+async function sendChat(inputEl, sendBtn, logEl) {
+  if (!selectedId) return;
+  const message = inputEl.value.trim();
+  if (!message) return;
+  inputEl.value = "";
+  sendBtn.disabled = true;
+
+  if (!chatHistories[selectedId]) chatHistories[selectedId] = [];
+  const history = chatHistories[selectedId];
+  history.push({ role: "user", text: message });
+  renderChatLog(document.getElementById("chatLogStudent"), history);
+  renderChatLog(document.getElementById("chatLogAssistant"), history);
+
+  const studentLog = document.getElementById("chatLogStudent");
+  const assistantLog = document.getElementById("chatLogAssistant");
+
+  const pendingDiv = document.createElement("div");
+  pendingDiv.className = "chat-msg pending";
+  pendingDiv.innerHTML = `<span class="typing-cursor">▊</span> Analyzing digital twin models…`;
+  studentLog.appendChild(pendingDiv.cloneNode(true));
+  assistantLog.appendChild(pendingDiv);
+  studentLog.scrollTop = 999999;
+  assistantLog.scrollTop = 999999;
+
+  try {
+    const data = await fetchJSON("/api/chat", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student_id: selectedId, message, history: history.slice(0, -1) }),
+    });
+
+    studentLog.querySelectorAll(".chat-msg.pending").forEach(el => el.remove());
+    assistantLog.querySelectorAll(".chat-msg.pending").forEach(el => el.remove());
+
+    const item = { role: "model", text: data.reply, simulation: data.simulation };
+    history.push(item);
+
+    const words = data.reply.split(" ");
+    if (words.length > 6) {
+      const bStudent = document.createElement("div");
+      bStudent.className = "chat-msg model";
+      studentLog.appendChild(bStudent);
+
+      const bAssistant = document.createElement("div");
+      bAssistant.className = "chat-msg model";
+      assistantLog.appendChild(bAssistant);
+
+      let idx = 0;
+      const interval = setInterval(() => {
+        idx += 3;
+        if (idx < words.length) {
+          const partial = formatChatMarkdown(words.slice(0, idx).join(" ")) + `<span class="typing-cursor">▊</span>`;
+          bStudent.innerHTML = partial;
+          bAssistant.innerHTML = partial;
+          studentLog.scrollTop = 999999;
+          assistantLog.scrollTop = 999999;
+        } else {
+          clearInterval(interval);
+          renderChatLog(studentLog, history);
+          renderChatLog(assistantLog, history);
+          if (data.follow_ups && data.follow_ups.length) {
+            updateSuggestionChips(data.follow_ups);
+          }
+        }
+      }, 16);
+    } else {
+      renderChatLog(studentLog, history);
+      renderChatLog(assistantLog, history);
+      if (data.follow_ups && data.follow_ups.length) {
+        updateSuggestionChips(data.follow_ups);
+      }
+    }
+  } catch (err) {
+    studentLog.querySelectorAll(".chat-msg.pending").forEach(el => el.remove());
+    assistantLog.querySelectorAll(".chat-msg.pending").forEach(el => el.remove());
+    history.push({ role: "model", text: "Error: " + err.message });
+    renderChatLog(studentLog, history);
+    renderChatLog(assistantLog, history);
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+document.getElementById("chatFormStudent").addEventListener("submit", (e) => {
+  e.preventDefault();
+  sendChat(document.getElementById("chatInputStudent"), document.getElementById("chatSendStudent"), document.getElementById("chatLogStudent"));
+});
+document.getElementById("chatFormAssistant").addEventListener("submit", (e) => {
+  e.preventDefault();
+  sendChat(document.getElementById("chatInputAssistant"), document.getElementById("chatSendAssistant"), document.getElementById("chatLogAssistant"));
+});
+
+// ---------------- About page ----------------
+function fillMetricsFooter() {
+  const cards = document.querySelectorAll("#metricsFooter .card .stat-value");
+  cards[0].textContent = metrics.gpa_model.r2;
+  cards[1].textContent = metrics.gpa_model.mae;
+  cards[2].textContent = (metrics.risk_model.accuracy * 100).toFixed(0) + "%";
+  cards[3].textContent = metrics.risk_model.f1;
+  cards[4].textContent = metrics.risk_model.roc_auc;
+}
+
+function applyGeminiStatus(configured) {
+  geminiConfigured = true; // Always enable the chatbot
+  ["chatDisabledNoteStudent", "chatDisabledNoteAssistant"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.display = "none";
+    }
+  });
+  [["chatInputStudent", "chatSendStudent"], ["chatInputAssistant", "chatSendAssistant"]].forEach(([i, b]) => {
+    const inputEl = document.getElementById(i);
+    const btnEl = document.getElementById(b);
+    if (inputEl) {
+      inputEl.disabled = false;
+      inputEl.placeholder = "Ask about this student's predictions, signals, or changes…";
+    }
+    if (btnEl) btnEl.disabled = false;
+  });
+  const pill = document.getElementById("chatbotStatusPill");
+  if (pill) {
+    pill.className = "status-pill done";
+    pill.textContent = configured ? "Chatbot / recommendations — Gemini live" : "Chatbot / recommendations — Digital Twin engine live";
+  }
+  const explainer = document.getElementById("geminiExplainer");
+  if (explainer) {
+    explainer.innerHTML = configured
+      ? "<strong>Gemini chatbot:</strong> configured and live — recommendations and chat are generated by the Gemini API, with an automatic silent fallback to the Digital Twin engine if any single call fails."
+      : "<strong>Digital Twin chatbot:</strong> live and functional — recommendations and interactive chat answers are generated based on the student's trained Random Forest predictions, signal health, and cohort comparison. Add <code>GEMINI_API_KEY</code> to <code>.env</code> to activate external Gemini API generative responses.";
+  }
+}
+
+// ---------------- Role-based UI ----------------
+function applyRoleUI() {
+  const isStudent = authRole === "student";
+
+  document.getElementById("userChipAvatar").textContent = (authDisplayName || authRole || "?").trim().charAt(0).toUpperCase();
+  document.getElementById("userChipName").textContent = authDisplayName || authRole;
+  document.getElementById("userChipRole").textContent = authRole === "admin" ? "Admin (faculty)" : "Student";
+
+  document.querySelectorAll(".nav-link").forEach(btn => {
+    const roles = (btn.dataset.roles || "admin,student").split(",");
+    btn.style.display = roles.includes(authRole) ? "" : "none";
+  });
+
+  document.getElementById("navStudentLabel").textContent = isStudent ? "My Twin" : "Student Twin";
+  document.getElementById("pageStudentTitle").textContent = isStudent ? "My Twin" : "Student Twin";
+  document.getElementById("pageStudentDesc").textContent = isStudent
+    ? "Your live GPA and risk prediction, with an AI-generated (or rule-based fallback) recommendation and a chat you can ask questions in."
+    : "Live GPA and risk prediction for one student, with an AI-generated (or rule-based fallback) recommendation and a per-student chat.";
+  document.getElementById("studentPageActions").style.display = isStudent ? "none" : "flex";
+  document.getElementById("studentSelfBadge").style.display = isStudent ? "flex" : "none";
+  document.getElementById("studentSelfBadgeText").textContent = authDisplayName || authStudentId || "";
+
+  document.getElementById("pageAssistantDesc").textContent = isStudent
+    ? "Full-screen chat with the Gemini-powered mentor assistant, grounded in your own real signals and prediction."
+    : "Full-screen chat with the Gemini-powered mentor assistant, grounded in one student's real signals and prediction.";
+  document.getElementById("assistantPageActions").style.display = isStudent ? "none" : "flex";
+  document.getElementById("assistantSelfBadge").style.display = isStudent ? "flex" : "none";
+  document.getElementById("assistantSelfBadgeText").textContent = authDisplayName || authStudentId || "";
+
+  // Only a student logs a check-in for themselves from this panel -- an
+  // admin browsing arbitrary students shouldn't be able to overwrite a
+  // real student's data by accident from here.
+  document.getElementById("checkinCard").style.display = isStudent ? "block" : "none";
+}
+
+// ---------------- Boot ----------------
+async function enterApp() {
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("appShell").classList.add("active");
+  applyRoleUI();
+  await boot();
+}
+
+async function boot() {
+  try {
+    const status = await fetchJSON("/api/gemini_status");
+    applyGeminiStatus(!!status.configured);
+
+    if (authRole === "admin") {
+      [students, metrics, cohortSummary, cohortAggregate] = await Promise.all([
+        fetchJSON("/api/students"), fetchJSON("/api/metrics"), fetchJSON("/api/cohort_summary"), fetchJSON("/api/cohort_aggregate"),
+      ]);
+      populateSelects(students);
+      populateTable(students);
+      buildScatter();
+      buildImportanceChart();
+      renderOverview();
+      fillMetricsFooter();
+      await selectStudent(students[0].student_id);
+      navigate((location.hash || "#/overview").slice(2));
+    } else {
+      [metrics, cohortAggregate] = await Promise.all([fetchJSON("/api/metrics"), fetchJSON("/api/cohort_aggregate")]);
+      fillMetricsFooter();
+      await selectStudent(authStudentId);
+      navigate("student");
+    }
+  } catch (err) {
+    setSidebarStatus(false, "Could not load data: " + err.message);
+  }
+}
+
+if (loadAuthFromStorage()) {
+  enterApp();
+} else {
+  document.getElementById("loginScreen").classList.remove("hidden");
+}
+</script>
+</body>
+</html>

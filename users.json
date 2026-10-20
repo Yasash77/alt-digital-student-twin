@@ -1,0 +1,30 @@
+[
+  {
+    "username": "admin",
+    "password_hash": "$2b$12$gv1gs8oMjoF9iwVVRSjfJO8D2Yyxv0uPB.3YrmyaLq.j.w76zjpPS",
+    "role": "admin",
+    "student_id": null,
+    "display_name": "Faculty Admin"
+  },
+  {
+    "username": "s1000",
+    "password_hash": "$2b$12$0WSClUpn/h8C7i5hb3oIJey4dIA5vCGmWgP.69ki34kyzSnuGgEEG",
+    "role": "student",
+    "student_id": "S1000",
+    "display_name": "Student S1000"
+  },
+  {
+    "username": "s1182",
+    "password_hash": "$2b$12$MJF4SRWJ4erJlQ770yMxR.OOTiwhwCKpCCS30h2ZHKropn9Gbj7eG",
+    "role": "student",
+    "student_id": "S1182",
+    "display_name": "Student S1182"
+  },
+  {
+    "username": "s1093",
+    "password_hash": "$2b$12$1Uwwkod.OClvRZUJSJEKgeCON1wpbIeurH49IRvf1fP5.U.MH7xmi",
+    "role": "student",
+    "student_id": "S1093",
+    "display_name": "Student S1093"
+  }
+]
