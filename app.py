@@ -929,41 +929,62 @@ def _rule_based_chat(student_id: str, features_row: dict, prediction: dict, mess
             ],
         }
 
-    # 10. Greetings & identity
-    if any(w in msg.split() for w in ["hi", "hello", "hey", "greetings", "help"]):
+    # 10. Greetings & casual conversation
+    if any(w in msg.split() for w in ["hi", "hello", "hey", "sup", "yo", "greetings", "good morning", "good evening"]):
         reply = (
-            f"Hello! I am the Digital Student Twin AI Assistant for student {student_id}.\n\n"
-            f"- **Predicted GPA:** {gpa:.2f}/10.0\n"
-            f"- **Academic Risk:** {'FLAGGED AT-RISK' if at_risk else 'Safe / Not at-risk'} ({risk_prob:.0%})\n"
-            f"- **Signals:** Attendance {att:.1f}% | Study {study:.1f}h/day | Sleep {sleep:.1f}h\n\n"
-            f"Try asking: *'What if I study 4 hours?'*, *'Compare me to the class'*, or *'What is the highest-impact change?'*"
+            f"Hey there! Great to connect with you. 😊\n\n"
+            f"I've got your latest telemetry right here: your predicted GPA is sitting at **{gpa:.2f}/10.0**, and your academic risk is **{'flagged at-risk' if at_risk else 'looking safe and steady'}** ({risk_prob:.0%}).\n\n"
+            f"How is your semester feeling so far? You can ask me anything from *'what if I study 4 hours?'* to *'how do I boost my grades?'*, or just talk through any stress you're dealing with."
         )
         return {
             "reply": reply,
             "simulation": None,
             "follow_ups": [
-                "🎯 What's the highest-impact change?",
+                "🎯 What's my highest-impact change?",
                 f"⚡ Simulate Study: {min(6.0, round(study + 1.5, 1))}h",
-                "📊 Compare with Cohort Average",
-                "✉️ Draft Check-in Message",
+                "📊 How do I compare to the class?",
+                "✉️ Draft a quick message to my professor",
             ],
         }
 
-    # General fallback
+    # 11. Practical advice / What should I do / How to improve
+    if any(k in msg for k in ["what should i do", "how to improve", "how can i improve", "advice", "help me", "suggestions", "tell me what to do"]):
+        leverage_name = "attendance" if att < 75 else "sleep" if sleep < 6.0 else "study hours" if study < 2.5 else "assignment submissions"
+        reply = (
+            f"Here's my honest, practical advice for you right now:\n\n"
+            f"Your single biggest lever for growth is **{leverage_name}**. Our trained machine learning models show this signal has the steepest correlation with your GPA trajectory.\n\n"
+            f"Here is a realistic, human game plan:\n"
+            f"1. **Focus on the {leverage_name} baseline first:** Don't try to change 5 things at once. Nailing just this one habit creates an immediate buffer.\n"
+            f"2. **Protect your cognitive endurance:** Make sure you're getting consistent rest (currently at {sleep:.1f}h/night).\n"
+            f"3. **Use the simulator:** Head to the 'What-If Simulator' or ask me here to see how moving that slider shifts your GPA forecast in real time.\n\n"
+            f"What feels most doable for you to tackle this week?"
+        )
+        return {
+            "reply": reply,
+            "simulation": None,
+            "follow_ups": [
+                f"⚡ Simulate improving {leverage_name}",
+                "📊 How do I compare to the class?",
+                "🎯 What's the highest-impact change?",
+                "☕ Quick 20-minute study routine",
+            ],
+        }
+
+    # General fallback: warm, human, conversational
+    leverage_name = "attendance" if att < 75 else "daily sleep" if sleep < 6.0 else "consistent study hours" if study < 2.5 else "assignment completion"
     reply = (
-        f"Based on student {student_id}'s Digital Twin data:\n\n"
-        f"- Current Prediction: GPA {gpa:.2f}/10.0, Risk Probability: {risk_prob:.0%}\n"
-        f"- Key Signals: Attendance {att:.1f}%, Avg Marks {marks:.1f}/100, Study {study:.1f}h/day, Assignments {assign:.1f}%, Sleep {sleep:.1f}h/night, Mood {mood:.1f}/5\n\n"
-        f"To improve this student's trajectory, the highest leverage area is raising their {'attendance' if att < 75 else 'study hours' if study < 2.5 else 'assignment completion'}."
+        f"I hear you! Looking across your digital twin signals, your predicted GPA is at **{gpa:.2f}/10.0** with a **{risk_prob:.0%}** risk probability.\n\n"
+        f"If you're looking to make real academic gains without burning out, the highest-leverage area to focus on is **{leverage_name}**. Even small, 15-minute incremental adjustments here yield noticeable improvements in your model forecasts.\n\n"
+        f"Would you like me to simulate a specific change for you (like adding study time or catching up on sleep), compare your stats with the class, or help you structure today's study plan?"
     )
     return {
         "reply": reply,
         "simulation": None,
         "follow_ups": [
-            "🎯 What's the highest-impact change?",
+            "🎯 What's my highest-impact change?",
             f"⚡ Simulate Study: {min(6.0, round(study + 1.0, 1))}h",
-            "📊 Compare with Cohort Average",
-            "✉️ Draft Check-in Message",
+            "📊 How do I compare to the class?",
+            "✉️ Draft a quick message to my professor",
         ],
     }
 

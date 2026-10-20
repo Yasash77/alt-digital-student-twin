@@ -1794,7 +1794,7 @@ async function sendChat(inputEl, sendBtn, logEl) {
 
   const pendingDiv = document.createElement("div");
   pendingDiv.className = "chat-msg pending";
-  pendingDiv.innerHTML = `<span class="typing-cursor">▊</span> Analyzing digital twin models…`;
+  pendingDiv.innerHTML = `<span class="typing-cursor">▊</span> Thinking…`;
   studentLog.appendChild(pendingDiv.cloneNode(true));
   assistantLog.appendChild(pendingDiv);
   studentLog.scrollTop = 999999;
@@ -1812,40 +1812,12 @@ async function sendChat(inputEl, sendBtn, logEl) {
     const item = { role: "model", text: data.reply, simulation: data.simulation };
     history.push(item);
 
-    const words = data.reply.split(" ");
-    if (words.length > 6) {
-      const bStudent = document.createElement("div");
-      bStudent.className = "chat-msg model";
-      studentLog.appendChild(bStudent);
-
-      const bAssistant = document.createElement("div");
-      bAssistant.className = "chat-msg model";
-      assistantLog.appendChild(bAssistant);
-
-      let idx = 0;
-      const interval = setInterval(() => {
-        idx += 3;
-        if (idx < words.length) {
-          const partial = formatChatMarkdown(words.slice(0, idx).join(" ")) + `<span class="typing-cursor">▊</span>`;
-          bStudent.innerHTML = partial;
-          bAssistant.innerHTML = partial;
-          studentLog.scrollTop = 999999;
-          assistantLog.scrollTop = 999999;
-        } else {
-          clearInterval(interval);
-          renderChatLog(studentLog, history);
-          renderChatLog(assistantLog, history);
-          if (data.follow_ups && data.follow_ups.length) {
-            updateSuggestionChips(data.follow_ups);
-          }
-        }
-      }, 16);
-    } else {
-      renderChatLog(studentLog, history);
-      renderChatLog(assistantLog, history);
-      if (data.follow_ups && data.follow_ups.length) {
-        updateSuggestionChips(data.follow_ups);
-      }
+    renderChatLog(studentLog, history);
+    renderChatLog(assistantLog, history);
+    studentLog.scrollTop = 999999;
+    assistantLog.scrollTop = 999999;
+    if (data.follow_ups && data.follow_ups.length) {
+      updateSuggestionChips(data.follow_ups);
     }
   } catch (err) {
     studentLog.querySelectorAll(".chat-msg.pending").forEach(el => el.remove());
