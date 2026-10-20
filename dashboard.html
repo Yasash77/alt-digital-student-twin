@@ -870,12 +870,18 @@
     </nav>
 
     <div class="Header-right">
-      <button class="ToggleSound" id="toggleSoundBtn" aria-label="Toggle sound">
-        <span class="sound-bars">
-          <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
-        </span>
-        <span class="sound-label">SOUND</span>
-      </button>
+      <div class="sound-control-wrap" style="display:flex; align-items:center; gap:8px;">
+        <button class="ToggleSound" id="toggleSoundBtn" aria-label="Toggle calm soothing ambient music" title="Click to play calm soothing music">
+          <span class="sound-bars">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          </span>
+          <span class="sound-label" id="soundLabel">CALM MUSIC</span>
+        </button>
+        <div class="sound-slider-wrap" id="soundSliderWrap" style="display:none; align-items:center; gap:6px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:4px 10px; border-radius:999px;">
+          <input type="range" id="soundVolume" min="0" max="1" step="0.05" value="0.4" title="Volume" style="width:65px; height:4px; accent-color:#ff6200; cursor:pointer;" />
+          <span style="font-size:10px; font-family:var(--font-title); color:#ff6200; font-weight:600; letter-spacing:0.06em;">432Hz</span>
+        </div>
+      </div>
 
       <div class="sidebar-status" id="sidebarStatus">
         <span class="dot"></span><span id="sidebarStatusText">Live</span>
@@ -2068,67 +2074,236 @@ function initCustomCursor() {
   });
 }
 
-// Studio Mirage Ambient Sound Synthesizer (Binaural Drone)
-let audioCtx = null;
-let soundPlaying = false;
-let osc1 = null, osc2 = null, gainNode = null;
+// Studio Mirage Multi-Layer Generative Calm Soothing Sound Engine
+class CalmMusicEngine {
+  constructor() {
+    this.ctx = null;
+    this.isPlaying = false;
+    this.masterGain = null;
+    this.filter = null;
+    this.timer = null;
+    this.noiseSource = null;
+    this.noiseGain = null;
+    this.currentChord = 0;
+    this.volume = 0.4;
+    
+    // Soothing Pentatonic & Major 9th ambient chords tuned to A=432Hz
+    // Fmaj9, Cmaj7, Am9, Dm9
+    this.chords = [
+      [171.37, 215.90, 256.76, 323.51, 384.73], // Fmaj9 - deeply soothing, lowers cortisol
+      [128.38, 192.37, 242.36, 256.76, 323.51], // Cmaj7 - peaceful clarity
+      [108.00, 161.75, 215.90, 256.76, 342.75], // Am9   - warm resonance & deep calm
+      [144.10, 215.90, 256.76, 288.20, 362.77], // Dm9   - serene resolving harmony
+    ];
+
+    // Delicate glass bell / water chime notes (high pentatonic frequencies)
+    this.chimes = [513.52, 576.40, 647.02, 769.46, 863.60, 1027.04];
+  }
+
+  init() {
+    if (this.ctx) return;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    this.ctx = new AudioContext();
+
+    this.masterGain = this.ctx.createGain();
+    this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+
+    // Warm analog low-pass filter (cuts harsh highs)
+    this.filter = this.ctx.createBiquadFilter();
+    this.filter.type = "lowpass";
+    this.filter.frequency.setValueAtTime(580, this.ctx.currentTime);
+    this.filter.Q.setValueAtTime(1.1, this.ctx.currentTime);
+
+    // Subtle 12-second breath LFO for the filter
+    const lfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
+    lfo.frequency.setValueAtTime(0.08, this.ctx.currentTime);
+    lfoGain.gain.setValueAtTime(160, this.ctx.currentTime);
+    lfo.connect(lfoGain);
+    lfoGain.connect(this.filter.frequency);
+    lfo.start();
+
+    // Gentle soothing ocean breeze / pink noise background
+    this.createBreezeTexture();
+
+    this.filter.connect(this.masterGain);
+    this.masterGain.connect(this.ctx.destination);
+  }
+
+  createBreezeTexture() {
+    try {
+      const bufferSize = this.ctx.sampleRate * 2.5;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.025;
+        b6 = white * 0.115926;
+      }
+
+      this.noiseSource = this.ctx.createBufferSource();
+      this.noiseSource.buffer = buffer;
+      this.noiseSource.loop = true;
+
+      const noiseFilter = this.ctx.createBiquadFilter();
+      noiseFilter.type = "lowpass";
+      noiseFilter.frequency.setValueAtTime(400, this.ctx.currentTime);
+
+      this.noiseGain = this.ctx.createGain();
+      this.noiseGain.gain.setValueAtTime(0.012, this.ctx.currentTime);
+
+      // Slow wave modulation
+      const waveLfo = this.ctx.createOscillator();
+      const waveGain = this.ctx.createGain();
+      waveLfo.frequency.setValueAtTime(0.1, this.ctx.currentTime);
+      waveGain.gain.setValueAtTime(0.006, this.ctx.currentTime);
+      waveLfo.connect(waveGain);
+      waveGain.connect(this.noiseGain.gain);
+      waveLfo.start();
+
+      this.noiseSource.connect(noiseFilter);
+      noiseFilter.connect(this.noiseGain);
+      this.noiseGain.connect(this.masterGain);
+      this.noiseSource.start();
+    } catch(e) {}
+  }
+
+  playChord(frequencies, duration = 8.5) {
+    if (!this.isPlaying) return;
+    const now = this.ctx.currentTime;
+
+    frequencies.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const oscGain = this.ctx.createGain();
+
+      osc.type = idx % 2 === 0 ? "sine" : "triangle";
+      const detune = (Math.random() - 0.5) * 4;
+      osc.frequency.setValueAtTime(freq, now);
+      osc.detune.setValueAtTime(detune, now);
+
+      const peakGain = 0.038 / (frequencies.length * 0.7);
+      oscGain.gain.setValueAtTime(0.0001, now);
+      oscGain.gain.exponentialRampToValueAtTime(peakGain, now + 2.5);
+      oscGain.gain.setValueAtTime(peakGain, now + duration - 2.8);
+      oscGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      osc.connect(oscGain);
+      oscGain.connect(this.filter);
+
+      osc.start(now);
+      osc.stop(now + duration + 0.5);
+    });
+
+    // Random gentle chime
+    if (Math.random() > 0.3) {
+      setTimeout(() => {
+        if (!this.isPlaying) return;
+        this.playChime();
+      }, 1600 + Math.random() * 2400);
+    }
+  }
+
+  playChime() {
+    if (!this.ctx || !this.isPlaying) return;
+    const now = this.ctx.currentTime;
+    const chimeOsc = this.ctx.createOscillator();
+    const chimeGain = this.ctx.createGain();
+
+    const note = this.chimes[Math.floor(Math.random() * this.chimes.length)];
+    chimeOsc.type = "sine";
+    chimeOsc.frequency.setValueAtTime(note, now);
+
+    chimeGain.gain.setValueAtTime(0.0001, now);
+    chimeGain.gain.exponentialRampToValueAtTime(0.015, now + 0.06);
+    chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.8);
+
+    chimeOsc.connect(chimeGain);
+    chimeGain.connect(this.filter);
+
+    chimeOsc.start(now);
+    chimeOsc.stop(now + 4);
+  }
+
+  start() {
+    this.init();
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume();
+    }
+    this.isPlaying = true;
+    this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+    this.masterGain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+    this.masterGain.gain.exponentialRampToValueAtTime(this.volume, this.ctx.currentTime + 2.0);
+
+    this.cycleChords();
+  }
+
+  cycleChords() {
+    if (!this.isPlaying) return;
+    const chord = this.chords[this.currentChord];
+    this.playChord(chord, 8.5);
+    this.currentChord = (this.currentChord + 1) % this.chords.length;
+
+    this.timer = setTimeout(() => {
+      this.cycleChords();
+    }, 6200); // 2.3s seamless overlap
+  }
+
+  stop() {
+    this.isPlaying = false;
+    if (this.timer) clearTimeout(this.timer);
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.masterGain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 1.0);
+    }
+  }
+
+  setVolume(val) {
+    this.volume = Math.max(0, Math.min(1, val));
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+    }
+  }
+}
+
+const calmAudio = new CalmMusicEngine();
 
 function initAudioSynth() {
   const btn = document.getElementById("toggleSoundBtn");
+  const label = document.getElementById("soundLabel");
+  const sliderWrap = document.getElementById("soundSliderWrap");
+  const volumeSlider = document.getElementById("soundVolume");
   if (!btn) return;
 
   btn.addEventListener("click", () => {
-    if (!audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === "suspended") {
-      audioCtx.resume();
-    }
-
-    if (!soundPlaying) {
-      osc1 = audioCtx.createOscillator();
-      osc2 = audioCtx.createOscillator();
-      gainNode = audioCtx.createGain();
-
-      osc1.type = "sine";
-      osc1.frequency.setValueAtTime(110, audioCtx.currentTime);
-
-      osc2.type = "sine";
-      osc2.frequency.setValueAtTime(164.8, audioCtx.currentTime);
-
-      gainNode.gain.setValueAtTime(0.001, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.04, audioCtx.currentTime + 1.5);
-
-      osc1.connect(gainNode);
-      osc2.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      osc1.start();
-      osc2.start();
-      soundPlaying = true;
+    if (!calmAudio.isPlaying) {
+      calmAudio.start();
       btn.classList.add("active");
-      btn.querySelector(".sound-label").textContent = "MUTE";
+      if (label) label.textContent = "SOOTHING";
+      if (sliderWrap) sliderWrap.style.display = "flex";
     } else {
-      if (gainNode) {
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.5);
-        setTimeout(() => {
-          try {
-            osc1.stop();
-            osc2.stop();
-            osc1.disconnect();
-            osc2.disconnect();
-          } catch(e) {}
-        }, 550);
-      }
-      soundPlaying = false;
+      calmAudio.stop();
       btn.classList.remove("active");
-      btn.querySelector(".sound-label").textContent = "SOUND";
+      if (label) label.textContent = "CALM MUSIC";
+      if (sliderWrap) sliderWrap.style.display = "none";
     }
   });
+
+  if (volumeSlider) {
+    volumeSlider.addEventListener("input", (e) => {
+      calmAudio.setVolume(parseFloat(e.target.value));
+    });
+  }
 }
 
-// Start visual & audio atmosphere immediately
+
+// Start atmosphere immediately
 initMirageAtmosphere();
 initCustomCursor();
 initAudioSynth();
